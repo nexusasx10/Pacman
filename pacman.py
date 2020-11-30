@@ -5,15 +5,15 @@ from argparse import ArgumentParser
 from collections import defaultdict
 from configparser import ConfigParser
 
-from lib.utils import Services
-from lib.view.debug_view import DebugView
-from lib.view.sound_engine import SoundEngine
-from lib.controller import Controller
-from lib.event import EventDispatcher
-from lib.interface import Interface
-from lib.model.game_driver import GameDriver
-from lib.resource_manager import ResourceManager
-from lib.view.game_view import View
+from library.utils import Services
+from library.view.debug_view import DebugView
+from library.view.sound_engine import SoundEngine
+from library.controller import Controller
+from library.event import EventDispatcher
+from library.interface import Interface
+from library.model.game_driver import GameDriver
+from library.resource_manager import ResourceManager
+from library.view.game_view import View
 
 
 class Config(defaultdict):
