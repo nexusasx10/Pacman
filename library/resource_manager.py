@@ -72,6 +72,24 @@ class ResourceManager:
                     return False
         return True
 
+    def _get_fallback_texture(self):
+        if not self._fallback_texture:
+            texture_width = self._services.config['view']['texture_width']
+            texture_height = self._services.config['view']['texture_height']
+            image = Image.new('RGB', (texture_width, texture_height), '#FF0000')
+            for i in range(texture_width):
+                for j in range(texture_height):
+                    if ((i // 8) % 2 == 1) == ((j // 8) % 2 == 1):
+                        color = (0, 0, 0)
+                    else:
+                        color = (255, 0, 255)
+                    image.putpixel((i, j), color)
+
+            self._fallback_texture = ImageTk.PhotoImage(image)
+        return self._fallback_texture
+
+    _fallback_texture = None
+
     def _load_textures(self):
         texture_width = self._services.config['view']['texture_width']
         texture_height = self._services.config['view']['texture_height']
@@ -96,7 +114,10 @@ class ResourceManager:
                     self._textures[name].append(ImageTk.PhotoImage(texture))
 
     def get_texture(self, name, index):
-        return self._textures[name][index]
+        if name in self._textures:
+            return self._textures[name][index]
+        else:
+            return self._get_fallback_texture()
 
     def _load_animations(self):
         parser = configparser.ConfigParser(delimiters=('=',))
