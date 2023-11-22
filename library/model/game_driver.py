@@ -11,7 +11,7 @@ from library.model.field import Field, Block
 from library.geometry import Direction, Point
 from library.model.menu import Menu, PageItem, RatingsItem, RecordItem, SaveItem, \
     LoadItem
-from library.time import Scheduler, Timer
+from library.time import Scheduler
 
 
 class GameDriver:
@@ -34,11 +34,7 @@ class GameDriver:
         self._services = services
         self.menu = None
         self._init_menu()
-        self._scheduler = Scheduler(services)
-        self._timer = Timer(
-            services,
-            1000 / services.config['model']['update_rate']
-        )
+        self._scheduler = Scheduler(self._services.event_dispatcher)
         self.mode = self.Mode.MENU
         self.time = None
         self.grid = None
@@ -72,7 +68,6 @@ class GameDriver:
         self._services.event_dispatcher.register_handler(
             EventId.NEXT_LEVEL, self._on_next_level
         )
-        self._timer.start()
 
     def _init_menu(self):
         menu = Menu()

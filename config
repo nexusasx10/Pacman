@@ -20,7 +20,6 @@ sound_enabled = True
 
 
 [model]
-update_rate = 75
 symbols = abcdefghijklmnopqrstuvwxyz0123456789-
 dot_count = 240
 max_level = 5
