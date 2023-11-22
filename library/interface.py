@@ -14,7 +14,9 @@ class Interface:
     def __init__(self, services):
         self._services = services
         self.root = tkinter.Tk()
-        self.root.title(self._services.config['interface']['root_title'])
+        root_title = self._services.config['interface']['root_title']
+        version = self._services.config['interface']['version']
+        self.root.title(root_title + ' v' + str(version))
         self.root.resizable(False, False)
         if os_name == 'nt':
             self.root.iconbitmap(bitmap=self._services.resources.get_icon())

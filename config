@@ -8,7 +8,8 @@ debug = False
 
 
 [interface]
-root_title = Pacman v0.5
+root_title = Pacman
+version = 0.5
 
 
 [view]
