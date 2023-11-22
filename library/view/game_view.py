@@ -1,7 +1,7 @@
 from collections import deque
 
 from library.event import EventId
-from library.geometry import Point, Direction, Size
+from library.geometry import Vector, Direction
 from library.graphics import AnimationDrawer
 from library.interface import Interface
 from library.model.actor import Pacman, Enemy
@@ -17,7 +17,7 @@ class TextDrawer:
         CENTER = 1
         RIGHT = 2
 
-    _offset = Point(-8, -8)
+    _offset = Vector(-8, -8)
 
     def __init__(self, services, display):
         self._services = services
@@ -50,7 +50,7 @@ class TextDrawer:
 
 class ActorDrawer:
 
-    _offset = Point(-16, -16)
+    _offset = Vector(-16, -16)
 
     def __init__(self, services, display):
         self._drawer = AnimationDrawer(services, display)
@@ -105,7 +105,7 @@ class EnemyDrawer:
 
 class BlockDrawer:
 
-    _offset = Point(-8, -8)
+    _offset = Vector(-8, -8)
 
     def __init__(self, services, display):
         self._drawer = AnimationDrawer(services, display)
@@ -194,39 +194,39 @@ class BlockDrawer:
 
 class BackgroundDrawer:
 
-    _offset = Point(-8, -8)
+    _offset = Vector(-8, -8)
 
     def __init__(self, services, display, size):
         self._services = services
         self._display = display
         self._size = size
         self._drawers = {}
-        for i in range(Interface.size.width):
-            for j in range(Interface.size.height):
+        for i in range(Interface.size.x):
+            for j in range(Interface.size.y):
                 self._drawers[i, j] = AnimationDrawer(services, display)
 
     def draw(self, position):
-        for j in range(self._size.height):
-            for i in range(self._size.width):
+        for j in range(self._size.y):
+            for i in range(self._size.x):
                 args = (position.shift(i, j), self._offset, 'block')
                 if j == 0:
                     if i == 0:
                         self._drawers[i, j].draw(*args, 'wall_10')
-                    elif i == self._size.width - 1:
+                    elif i == self._size.x - 1:
                         self._drawers[i, j].draw(*args, 'wall_11')
                     else:
                         self._drawers[i, j].draw(*args, 'wall_8')
-                elif j == self._size.height - 1:
+                elif j == self._size.y - 1:
                     if i == 0:
                         self._drawers[i, j].draw(*args, 'wall_12')
-                    elif i == self._size.width - 1:
+                    elif i == self._size.x - 1:
                         self._drawers[i, j].draw(*args, 'wall_13')
                     else:
                         self._drawers[i, j].draw(*args, 'wall_2')
                 else:
                     if i == 0:
                         self._drawers[i, j].draw(*args, 'wall_6')
-                    elif i == self._size.width - 1:
+                    elif i == self._size.x - 1:
                         self._drawers[i, j].draw(*args, 'wall_4')
                     else:
                         self._drawers[i, j].draw(*args, 'empty')
@@ -234,7 +234,7 @@ class BackgroundDrawer:
 
 class MenuDrawer:
 
-    _offset = Point(-8, -8)
+    _offset = Vector(-8, -8)
 
     def __init__(self, services, display):
         self._services = services
@@ -246,18 +246,18 @@ class MenuDrawer:
         )
 
     def initial_draw(self):
-        self._background_drawer.draw(Point(0, 0))
+        self._background_drawer.draw(Vector(0, 0))
 
     def _draw_content(self, content):
         while self._content_drawers:
             drawer = self._content_drawers.pop()
             drawer.clear()
         for i, line in enumerate(content):
-            x = Interface.size.width / 2
-            y = (Interface.size.height - len(content)) / 2 + i
+            x = Interface.size.x / 2
+            y = (Interface.size.y - len(content)) / 2 + i
             drawer = TextDrawer(self._services, self._display)
             self._content_drawers.append(drawer)
-            drawer.draw(Point(x, y), line)
+            drawer.draw(Vector(x, y), line)
 
     def _draw_page(self, menu, prev_content):
         for i, (caption, _, _, _) in enumerate(menu.current_page.items):
@@ -291,9 +291,9 @@ class MenuDrawer:
     def draw(self, model):
         if not model:
             return
-        x = Interface.size.width / 2
-        y = Interface.size.height / 4
-        self._title_drawer.draw(Point(x, y), model.menu.current_page.title)
+        x = Interface.size.x / 2
+        y = Interface.size.y / 4
+        self._title_drawer.draw(Vector(x, y), model.menu.current_page.title)
         if type(model.menu.current_page) == RatingsItem:
             self._draw_ratings(model.menu, [])
         elif type(model.menu.current_page) == RecordItem:
@@ -333,9 +333,9 @@ class GameDrawer:
             self._services,
             self._display
         )
-        for x in range(Grid.size.width):
-            for y in range(Grid.size.height):
-                self._block_drawers[Point(x, y)] = BlockDrawer(
+        for x in range(Grid.size.x):
+            for y in range(Grid.size.y):
+                self._block_drawers[Vector(x, y)] = BlockDrawer(
                     self._services,
                     self._display
                 )
@@ -343,11 +343,11 @@ class GameDrawer:
         self._scores_drawers = TextDrawer(services, display)
         self._lives_drawers = TextDrawer(services, display)
         self._background_drawer = BackgroundDrawer(
-            services, display, Size(16, Grid.size.height)
+            services, display, Vector(16, Grid.size.y)
         )
 
     def initial_draw(self):
-        self._background_drawer.draw(Point(Grid.size.width, 0))
+        self._background_drawer.draw(Vector(Grid.size.x, 0))
 
     def draw(self, model):
         if not model:
@@ -357,17 +357,17 @@ class GameDrawer:
         for actor in model.field.actors.values():
             self._actor_drawers[actor.name].draw(actor)
         self._level_drawers.draw(
-            Point(Grid.size.width + 1, 1),
+            Vector(Grid.size.x + 1, 1),
             'level: {}'.format(model.level),
             TextDrawer.Align.LEFT
         )
         self._scores_drawers.draw(
-            Point(Grid.size.width + 1, 3),
+            Vector(Grid.size.x + 1, 3),
             'scores: {}'.format(model.scores),
             TextDrawer.Align.LEFT
         )
         self._lives_drawers.draw(
-            Point(Grid.size.width + 1, 5),
+            Vector(Grid.size.x + 1, 5),
             'lives: {}'.format(model.lives),
             TextDrawer.Align.LEFT
         )
@@ -384,10 +384,10 @@ class WinDrawer:
         self._text_drawer = TextDrawer(services, display)
 
     def draw(self, model):
-        self._background_drawer.draw(Point(0, 0))
-        x = Interface.size.width / 2
-        y = Interface.size.height / 2
-        self._text_drawer.draw(Point(x, y), 'you win!')
+        self._background_drawer.draw(Vector(0, 0))
+        x = Interface.size.x / 2
+        y = Interface.size.y / 2
+        self._text_drawer.draw(Vector(x, y), 'you win!')
 
 
 class LoseDrawer:
@@ -401,10 +401,10 @@ class LoseDrawer:
         self._text_drawer = TextDrawer(services, display)
 
     def draw(self, model):
-        self._background_drawer.draw(Point(0, 0))
-        x = Interface.size.width / 2
-        y = Interface.size.height / 2
-        self._text_drawer.draw(Point(x, y), 'you lose...')
+        self._background_drawer.draw(Vector(0, 0))
+        x = Interface.size.x / 2
+        y = Interface.size.y / 2
+        self._text_drawer.draw(Vector(x, y), 'you lose...')
 
 
 class View:

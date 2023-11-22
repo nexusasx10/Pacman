@@ -1,8 +1,7 @@
 import time
 from collections import defaultdict, deque
-from threading import Thread
 
-from library.event import EventArgs, EventId
+from library.event import EventId
 
 
 class Stopwatch:

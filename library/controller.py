@@ -1,6 +1,6 @@
 from enum import Enum
 
-from library.event import EventArgs, EventId
+from library.event import EventId
 
 
 class Control(Enum):

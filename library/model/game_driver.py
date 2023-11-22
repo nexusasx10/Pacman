@@ -4,11 +4,11 @@ from enum import Enum
 import datetime
 
 from library.controller import Control
-from library.event import EventArgs, EventId
+from library.event import EventId
 from library.model.actor import Pacman, RedGhost, PinkGhost, BlueGhost, \
     OrangeGhost, Enemy
 from library.model.field import Field, Block
-from library.geometry import Direction, Point
+from library.geometry import Direction, Vector
 from library.model.menu import Menu, PageItem, RatingsItem, RecordItem, SaveItem, \
     LoadItem
 from library.time import Scheduler
@@ -249,13 +249,13 @@ class GameDriver:
         self._dots = save['game']['dots']
         self._scheduler.load(save['scheduler'])
         for cell in save['blocks']:
-            cell_p = Point(*map(int, cell.split(',')))
+            cell_p = Vector(*map(int, cell.split(',')))
             self.field.grid[cell_p].content = Block.Content[
                 save['blocks'][cell]
             ]
         self.field.spawn_actor(
             Pacman,
-            Point(*map(float, save['pacman']['position'].split(','))),
+            Vector(*map(float, save['pacman']['position'].split(','))),
             Direction[save['pacman']['direction']],
             (
                 Pacman.Mode[save['pacman']['mode1']],
@@ -263,12 +263,12 @@ class GameDriver:
             )
         )
         if save['pacman']['last_turn'] != 'None':
-            self.field.actors['pacman'].last_turn = Point(
+            self.field.actors['pacman'].last_turn = Vector(
                 *map(float, save['pacman']['last_turn'].split(','))
             )
         self.field.spawn_actor(
             RedGhost,
-            Point(*map(float, save['red_ghost']['position'].split(','))),
+            Vector(*map(float, save['red_ghost']['position'].split(','))),
             Direction[save['red_ghost']['direction']],
             (
                 Enemy.Mode[save['red_ghost']['mode1']],
@@ -277,7 +277,7 @@ class GameDriver:
             )
         )
         if save['red_ghost']['last_turn'] != 'None':
-            self.field.actors['red_ghost'].last_turn = Point(
+            self.field.actors['red_ghost'].last_turn = Vector(
                 *map(float, save['red_ghost']['last_turn'].split(','))
             )
         if save['red_ghost']['last_node'] != 'None':
@@ -286,7 +286,7 @@ class GameDriver:
             ]
         self.field.spawn_actor(
             PinkGhost,
-            Point(*map(float, save['pink_ghost']['position'].split(','))),
+            Vector(*map(float, save['pink_ghost']['position'].split(','))),
             Direction[save['pink_ghost']['direction']],
             (
                 Enemy.Mode[save['pink_ghost']['mode1']],
@@ -295,7 +295,7 @@ class GameDriver:
             )
         )
         if save['pink_ghost']['last_turn'] != 'None':
-            self.field.actors['pink_ghost'].last_turn = Point(
+            self.field.actors['pink_ghost'].last_turn = Vector(
                 *map(float, save['pink_ghost']['last_turn'].split(','))
             )
         if save['pink_ghost']['last_node'] != 'None':
@@ -304,7 +304,7 @@ class GameDriver:
             ]
         self.field.spawn_actor(
             BlueGhost,
-            Point(*map(float, save['blue_ghost']['position'].split(','))),
+            Vector(*map(float, save['blue_ghost']['position'].split(','))),
             Direction[save['blue_ghost']['direction']],
             (
                 Enemy.Mode[save['blue_ghost']['mode1']],
@@ -313,7 +313,7 @@ class GameDriver:
             )
         )
         if save['blue_ghost']['last_turn'] != 'None':
-            self.field.actors['blue_ghost'].last_turn = Point(
+            self.field.actors['blue_ghost'].last_turn = Vector(
                 *map(float, save['blue_ghost']['last_turn'].split(','))
             )
         if save['blue_ghost']['last_node'] != 'None':
@@ -322,7 +322,7 @@ class GameDriver:
             ]
         self.field.spawn_actor(
             OrangeGhost,
-            Point(*map(float, save['orange_ghost']['position'].split(','))),
+            Vector(*map(float, save['orange_ghost']['position'].split(','))),
             Direction[save['orange_ghost']['direction']],
             (
                 Enemy.Mode[save['orange_ghost']['mode1']],
@@ -331,7 +331,7 @@ class GameDriver:
             )
         )
         if save['orange_ghost']['last_turn'] != 'None':
-            self.field.actors['orange_ghost'].last_turn = Point(
+            self.field.actors['orange_ghost'].last_turn = Vector(
                 *map(float, save['orange_ghost']['last_turn'].split(','))
             )
         if save['orange_ghost']['last_node'] != 'None':

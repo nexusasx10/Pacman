@@ -2,15 +2,15 @@ import logging
 import tkinter
 from os import name as os_name
 
-from library.event import EventArgs, EventId
-from library.geometry import Size
+from library.event import EventId
+from library.geometry import Vector
 from library.model.field import Block
 from library.time import Stopwatch
 
 
 class Interface:
 
-    size = Size(44, 31)
+    size = Vector(44, 31)
 
     def __init__(self, services):
         self._services = services
@@ -27,8 +27,8 @@ class Interface:
             highlightthickness=0
         )
         self.root.display.config(
-            width=self.size.width * Block.size.width,
-            height=self.size.height * Block.size.height
+            width=self.size.x * Block.size.x,
+            height=self.size.y * Block.size.y
         )
         self.root.display.pack(side='left')
         self._redraw_delay = int(1000 / self._services.config['view']['fps'])

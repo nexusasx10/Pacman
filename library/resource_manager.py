@@ -11,7 +11,7 @@ except ModuleNotFoundError:
 from PIL import Image, ImageTk
 
 from library.exceptions import ResourceLoadingError
-from library.geometry import Point, Direction
+from library.geometry import Vector, Direction
 from library.graphics import Animation
 from library.model.field import Block, Grid
 
@@ -181,10 +181,10 @@ class ResourceManager:
             raise ResourceLoadingError(True, 'Can\'t load grids')
 
     def _validate_grid_data(self, data):
-        if len(data) != Grid.size.height:
+        if len(data) != Grid.size.y:
             raise ResourceLoadingError(False, 'Grid file is corrupted')
         for line in data:
-            if len(line) != Grid.size.width:
+            if len(line) != Grid.size.x:
                 raise ResourceLoadingError(False, 'Grid file is corrupted')
             for char in line:
                 if char not in self._block_types:
@@ -205,11 +205,11 @@ class ResourceManager:
                 connections = {}
                 for direction in Direction:
                     o_x, o_y = direction.get_offset()
-                    i_o = (i + o_y) % Grid.size.height
-                    j_o = (j + o_x) % Grid.size.width
+                    i_o = (i + o_y) % Grid.size.y
+                    j_o = (j + o_x) % Grid.size.x
                     connection = self._block_types[data[i_o][j_o]][2]
                     connections[direction] = connection
-                cell = Point(j, i)
+                cell = Vector(j, i)
                 grid[cell] = Block(cell, block_info[0], connections)
                 if block_info[1]:
                     grid.anchors[block_info[1]] = cell

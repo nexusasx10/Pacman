@@ -47,8 +47,8 @@ class AnimationDrawer:
         texture = self._current_animation.get()
         self.clear()
         self._display_id = self._display.create_image(
-            position.x * Block.size.width + offset.x,
-            position.y * Block.size.height + offset.y,
+            position.x * Block.size.x + offset.x,
+            position.y * Block.size.y + offset.y,
             image=texture,
             anchor='nw'
         )

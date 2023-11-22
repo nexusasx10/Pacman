@@ -1,13 +1,13 @@
 import itertools
 from enum import Enum
 
-from library.event import EventArgs, EventId
-from library.geometry import Size, Direction
+from library.event import EventId
+from library.geometry import Direction, Vector
 
 
 class Block:
 
-    size = Size(16, 16)
+    size = Vector(16, 16)
 
     class Content(Enum):
         EMPTY = 0
@@ -25,16 +25,16 @@ class Block:
 
 class Grid:
 
-    size = Size(28, 31)
+    size = Vector(28, 31)
 
     def __init__(self, anchors):
-        width, height = self.size.width, self.size.height
+        width, height = self.size.x, self.size.y
         self.dimensions = [[None for c in range(width)] for r in range(height)]
         self.anchors = anchors
 
     def __getitem__(self, cell):
-        x = cell.x % self.size.width
-        y = cell.y % self.size.height
+        x = cell.x % self.size.x
+        y = cell.y % self.size.y
         return self.dimensions[y][x]
 
     def __setitem__(self, cell, value):

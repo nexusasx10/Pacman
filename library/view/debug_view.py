@@ -23,10 +23,10 @@ class EnemyDrawer:
         ):
             return
         self._display_id = self._display.create_line(
-            actor.position.x * Block.size.width,
-            actor.position.y * Block.size.height,
-            actor.get_target().x * Block.size.width,
-            actor.get_target().y * Block.size.height,
+            actor.position.x * Block.size.x,
+            actor.position.y * Block.size.y,
+            actor.get_target().x * Block.size.x,
+            actor.get_target().y * Block.size.y,
             fill=self._color
         )
 

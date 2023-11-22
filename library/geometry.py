@@ -4,13 +4,17 @@ from enum import Enum
 from library.utils import DataClass
 
 
-class Point(DataClass):
+class Vector(DataClass):
+
     def __init__(self, x, y):
         self.x = x
         self.y = y
 
     def __repr__(self):
-        return '{},{}'.format(self.x, self.y)
+        return f'x={self.x}, y={self.y}'
+
+    def __mul__(self, number):
+        return Vector(self.x * number, self.y * number)
 
     def distance(self, other):
         return ((self.x - other.x) ** 2 + (self.y - other.y) ** 2) ** 0.5
@@ -21,19 +25,7 @@ class Point(DataClass):
         return self
 
     def shift(self, delta_x, delta_y):
-        return Point(self.x + delta_x, self.y + delta_y)
-
-
-class Size(DataClass):
-    def __init__(self, width, height):
-        self.width = width
-        self.height = height
-
-    def __repr__(self):
-        return '{},{}'.format(self.width, self.height)
-
-    def __mul__(self, number):
-        return Size(int(self.width * number), int(self.height * number))
+        return Vector(self.x + delta_x, self.y + delta_y)
 
 
 class Direction(Enum):

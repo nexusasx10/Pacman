@@ -7,7 +7,7 @@ from enum import Enum
 
 from library.controller import Control
 from library.event import EventId
-from library.geometry import Point, Direction
+from library.geometry import Vector, Direction
 from library.model.field import Block, Grid
 from library.model.state_driver import StateDriver
 
@@ -44,7 +44,7 @@ class Actor(ABC):
 
     @property
     def cell(self):
-        return Point(
+        return Vector(
             math.floor(self.position.x),
             math.floor(self.position.y)
         )
@@ -54,8 +54,8 @@ class Actor(ABC):
         pass
 
     def correct_position(self):
-        self.position.x %= Grid.size.width
-        self.position.y %= Grid.size.height
+        self.position.x %= Grid.size.x
+        self.position.y %= Grid.size.y
 
     def update(self):
         if self.position.distance(self.cell.shift(0.5, 0.5)) < 0.06:
@@ -292,7 +292,7 @@ class Enemy(Actor):
             if current_node is not None and current_node != self.last_node:
                 self.direction = self._field.enemy_graph.exit[current_node]
                 new_position = self._field.enemy_graph.nodes[current_node]
-                self.position = Point(new_position.x, new_position.y)
+                self.position = Vector(new_position.x, new_position.y)
                 self.last_node = current_node
         super().update()
 
@@ -309,16 +309,16 @@ class Enemy(Actor):
             elif self.mode[1] == self.Mode.CHASE:
                 return self.chase_target
             else:
-                return Point(
-                    random.randint(0, Grid.size.width),
-                    random.randint(0, Grid.size.height)
+                return Vector(
+                    random.randint(0, Grid.size.x),
+                    random.randint(0, Grid.size.y)
                 )
         elif self.mode[0] == self.Mode.DEAD:
             return self.dead_target
         else:
-            return Point(
-                random.randint(0, Grid.size.width),
-                random.randint(0, Grid.size.height)
+            return Vector(
+                random.randint(0, Grid.size.x),
+                random.randint(0, Grid.size.y)
             )
 
     def _on_crossway(self, event_args):
@@ -354,7 +354,7 @@ class RedGhost(Enemy):
             services, 'red_ghost', position, direction, mode, field
         )
 
-    scatter_target = Point(26, 0)
+    scatter_target = Vector(26, 0)
 
     @property
     def chase_target(self):
@@ -373,7 +373,7 @@ class PinkGhost(Enemy):
             self.Mode.EXIT
         )
 
-    scatter_target = Point(1, 0)
+    scatter_target = Vector(1, 0)
 
     @property
     def chase_target(self):
@@ -397,7 +397,7 @@ class BlueGhost(Enemy):
             self.Mode.EXIT
         )
 
-    scatter_target = Point(26, 30)
+    scatter_target = Vector(26, 30)
 
     @property
     def chase_target(self):
@@ -409,7 +409,7 @@ class BlueGhost(Enemy):
         )
         assistant = copy.deepcopy(self._field.actors['red_ghost'].position)
         assistant.move(-target.x, -target.y)
-        assistant = Point(-assistant.x, -assistant.y)
+        assistant = Vector(-assistant.x, -assistant.y)
         assistant.move(target.x, target.y)
         return assistant
 
@@ -426,7 +426,7 @@ class OrangeGhost(Enemy):
             self.Mode.EXIT
         )
 
-    scatter_target = Point(1, 30)
+    scatter_target = Vector(1, 30)
 
     @property
     def chase_target(self):
