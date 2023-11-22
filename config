@@ -24,6 +24,7 @@ symbols = abcdefghijklmnopqrstuvwxyz0123456789-
 dot_count = 240
 max_level = 5
 start_lives = 3
+is_god_mode = True
 
 
 [controls]

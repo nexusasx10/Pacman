@@ -101,7 +101,8 @@ class Pacman(Actor):
         self.state_driver_1.add_transition(
             EventId.INTERSECTION,
             (self.Mode.NONE,),
-            self.Mode.DEAD
+            self.Mode.DEAD,
+            lambda args: not services.config['model']['is_god_mode']
         )
         self.state_driver_1.add_transition(
             EventId.PICKUP,
