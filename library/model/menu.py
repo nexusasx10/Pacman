@@ -40,9 +40,10 @@ class Menu:
 
 class PageItem:
 
-    def __init__(self, title):
+    def __init__(self, title, pointer=0):
         self.title = title
-        self.pointer = 0
+        self._initial_pointer = pointer
+        self.pointer = self._initial_pointer
         self.items = []
         self.cache = {}
 
@@ -70,7 +71,7 @@ class PageItem:
         pass
 
     def reset(self):
-        self.pointer = 0
+        self.pointer = self._initial_pointer
 
 
 class RatingsItem(PageItem):

@@ -60,7 +60,7 @@ class GameDriver:
         menu.ratings_item = RatingsItem(self._services, 'ratings')
         menu.exit_item = PageItem('do you really want to exit?')
         menu.select_grid_item = PageItem('select grid')
-        menu.select_difficulty_item = PageItem('select difficulty')
+        menu.select_difficulty_item = PageItem('select difficulty', 1)
         menu.pause_item = PageItem('pause')
         menu.save_item = SaveItem(self._services, 'save', self.save_game)
         menu.load_item = LoadItem(self._services, 'load', self.load_game)
