@@ -22,14 +22,12 @@ class StateDriver:
                 self.current_state = to_state
                 self._services.event_dispatcher.fire(
                     EventId.MODE_CHANGE,
-                    EventArgs(
-                        self,
-                        name=self._actor_name,
-                        from_mode=old_state,
-                        to_mode=to_state
-                    )
+                    self,
+                    name=self._actor_name,
+                    from_mode=old_state,
+                    to_mode=to_state
                 )
-        self._services.event_dispatcher.register_handler(event_id, transition)
+        self._services.event_dispatcher.subscribe(event_id, transition)
 
     def reset(self):
         self._reset = True

@@ -7,16 +7,17 @@ class EventDispatcher:
     def __init__(self):
         self._handlers = defaultdict(list)
 
-    def register_handler(self, event_id, handler, priority=0):
+    def subscribe(self, event_id, handler, priority=0):
         self._handlers[event_id].append((priority, handler))
         # сортируем по приоритету
         self._handlers[event_id].sort(key=lambda x: x[0])
 
-    def delete_handler(self, event_id, handler, priority=0):
+    def unsubscribe(self, event_id, handler, priority=0):  # TODO: Remove priority
         self._handlers[event_id].remove((priority, handler))
 
-    def fire(self, event_id, event_args):
+    def fire(self, event_id, sender, **kwargs):
         for _, handler in self._handlers[event_id]:
+            event_args = EventArgs(sender, **kwargs)
             handler(event_args)
 
 

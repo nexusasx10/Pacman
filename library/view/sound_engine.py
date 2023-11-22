@@ -24,9 +24,7 @@ class SoundEngine:
         self.running = False
         self._model = None
         self._lock = Lock()
-        self._services.event_dispatcher.register_handler(
-            EventId.MODEL_UPDATE, self._on_model_update
-        )
+        self._services.event_dispatcher.subscribe(EventId.MODEL_UPDATE, self._on_model_update)
 
     def _on_model_update(self, event_args):
         self._model = event_args.model
@@ -113,7 +111,7 @@ class SoundEngine:
         def handler(event_args):
             if not condition or condition(event_args):
                 self.play(sound_id, channel_id, repeat, action)
-        self._services.event_dispatcher.register_handler(event_id, handler)
+        self._services.event_dispatcher.subscribe(event_id, handler)
 
     def _working_cycle(self):
         while self.running:

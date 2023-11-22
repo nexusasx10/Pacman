@@ -62,12 +62,8 @@ class DebugView:
                 '#f90'
             )
         }
-        self._services.event_dispatcher.register_handler(
-            EventId.MODEL_UPDATE, self._on_model_update
-        )
-        self._services.event_dispatcher.register_handler(
-            EventId.REDRAW, self._on_redraw
-        )
+        self._services.event_dispatcher.subscribe(EventId.MODEL_UPDATE, self._on_model_update)
+        self._services.event_dispatcher.subscribe(EventId.REDRAW, self._on_redraw)
 
     def _on_model_update(self, event_args):
         self._model = event_args.model

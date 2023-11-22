@@ -29,9 +29,7 @@ class Controller:
             control = self._services.config['controls'][event.char.lower()]
         if control:
             control = control.upper()
-            self._services.event_dispatcher.fire(
-                EventId.CONTROL, EventArgs(self, value=Control[control])  # todo проверка на корректность config
-            )
+            self._services.event_dispatcher.fire(EventId.CONTROL, self, value=Control[control])  # todo проверка на корректность config
 
     def _on_stop(self):
-        self._services.event_dispatcher.fire(EventId.STOP, EventArgs(self))
+        self._services.event_dispatcher.fire(EventId.STOP, self)

@@ -23,14 +23,10 @@ class Actor(ABC):
         self.direction = direction
         self.max_speed = 0.1  # todo outer, переделать проверки перекрёстков
         self._weak_field = weakref.ref(field)
-        self._services.event_dispatcher.register_handler(
-            EventId.CROSSWAY, self._on_crossway
-        )
+        self._services.event_dispatcher.subscribe(EventId.CROSSWAY, self._on_crossway)
 
     def destroy(self):
-        self._services.event_dispatcher.delete_handler(
-            EventId.CROSSWAY, self._on_crossway
-        )
+        self._services.event_dispatcher.unsubscribe(EventId.CROSSWAY, self._on_crossway)
 
     @property
     @abstractmethod
@@ -138,15 +134,11 @@ class Pacman(Actor):
         )
         self.next_direction = None
         self.last_turn = None
-        self._services.event_dispatcher.register_handler(
-            EventId.CONTROL, self._on_control  # todo
-        )
+        self._services.event_dispatcher.subscribe(EventId.CONTROL, self._on_control)  # todo
 
     def destroy(self):
         super().destroy()
-        self._services.event_dispatcher.delete_handler(
-            EventId.CONTROL, self._on_control
-        )
+        self._services.event_dispatcher.unsubscribe(EventId.CONTROL, self._on_control)
         self.state_driver_1.reset()
         self.state_driver_2.reset()
 
@@ -254,15 +246,11 @@ class Enemy(Actor):
         )
         self.last_turn = None
         self.last_node = None
-        self._services.event_dispatcher.register_handler(
-            EventId.GHOST_BEHIND_DOOR, self._on_ghost_behind_door, -1
-        )
+        self._services.event_dispatcher.subscribe(EventId.GHOST_BEHIND_DOOR, self._on_ghost_behind_door, -1)
 
     def destroy(self):
         super().destroy()
-        self._services.event_dispatcher.delete_handler(
-            EventId.GHOST_BEHIND_DOOR, self._on_ghost_behind_door, -1
-        )
+        self._services.event_dispatcher.unsubscribe(EventId.GHOST_BEHIND_DOOR, self._on_ghost_behind_door, -1)
         self.state_driver_1.reset()
         self.state_driver_2.reset()
         self.state_driver_3.reset()

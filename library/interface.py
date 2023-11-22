@@ -32,9 +32,7 @@ class Interface:
         )
         self.root.display.pack(side='left')
         self._redraw_delay = int(1000 / self._services.config['view']['fps'])
-        self._services.event_dispatcher.register_handler(
-            EventId.DESTROY, self._on_destroy
-        )
+        self._services.event_dispatcher.subscribe(EventId.DESTROY, self._on_destroy)
         self.tick_count = 0
         self.root.after(self._redraw_delay, self._on_update)
 
@@ -42,9 +40,9 @@ class Interface:
         stopwatch = Stopwatch()
         with stopwatch:
             for _ in range(8):
-                self._services.event_dispatcher.fire(EventId.TICK, EventArgs(self, time=self.tick_count))
+                self._services.event_dispatcher.fire(EventId.TICK, self, time=self.tick_count)
                 self.tick_count += 1
-            self._services.event_dispatcher.fire(EventId.REDRAW, EventArgs(self))
+            self._services.event_dispatcher.fire(EventId.REDRAW, self)
         print(self.tick_count // 8)
         # if stopwatch.result_ms > 0:
             # print(1000 / stopwatch.result_ms)

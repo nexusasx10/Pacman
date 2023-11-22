@@ -36,9 +36,7 @@ class Timer:
                 continue
             self._next_frame_time = time.time() + self.interval_ms / 1000
             with self._stopwatch:
-                self._event_dispatcher.fire(
-                    EventId.TICK, EventArgs(self, time=self.tick_count)
-                )
+                self._event_dispatcher.fire(EventId.TICK, self, time=self.tick_count)
             self.tick_count += 1
             if self._stopwatch.result_ms > 0:
                 print(1000 / self._stopwatch.result_ms)
@@ -59,9 +57,7 @@ class Scheduler:
         self._event_dispatcher = event_dispatcher
         self.current_time = 0
         self._planned_events = defaultdict(deque)
-        self._event_dispatcher.register_handler(
-            EventId.TICK, self._on_tick, 0
-        )
+        self._event_dispatcher.subscribe(EventId.TICK, self._on_tick, 0)
 
     def schedule(self, delay, event_id):
         self._planned_events[self.current_time + delay].append(event_id)
@@ -70,7 +66,7 @@ class Scheduler:
         self.current_time = event_args.time
         while self._planned_events[self.current_time]:
             event_id = self._planned_events[self.current_time].popleft()
-            self._event_dispatcher.fire(event_id, EventArgs(self))
+            self._event_dispatcher.fire(event_id, self)
 
     def reset(self):
         self._planned_events = defaultdict(deque)
