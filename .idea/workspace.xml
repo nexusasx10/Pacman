@@ -6,19 +6,7 @@
   <component name="ChangeListManager">
     <list default="true" id="0d501942-c809-4a56-971a-e540dc04ce14" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config" beforeDir="false" afterPath="$PROJECT_DIR$/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/library/controller.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/controller.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/library/geometry.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/geometry.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/library/graphics.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/graphics.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/library/interface.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/interface.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/library/model/actor.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/model/actor.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/library/model/field.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/model/field.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/library/resource_manager.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/resource_manager.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/library/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/utils.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/library/view/debug_view.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/view/debug_view.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/library/view/game_view.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/view/game_view.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pacman.py" beforeDir="false" afterPath="$PROJECT_DIR$/pacman.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
