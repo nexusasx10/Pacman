@@ -4,11 +4,14 @@
 max_saves = 10
 max_ratings = 10
 max_name_length = 6
-debug = False
+
+[debug]
+is_debug = False
+is_god_mode = False
 
 
 [interface]
-root_title = Pacman
+app_name = Pacman
 version = 0.5
 
 
@@ -24,7 +27,6 @@ symbols = abcdefghijklmnopqrstuvwxyz0123456789-
 dot_count = 240
 max_level = 5
 start_lives = 3
-is_god_mode = True
 
 
 [controls]
