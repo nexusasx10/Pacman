@@ -13,6 +13,9 @@ class Vector(DataClass):
     def __repr__(self):
         return f'x={self.x}, y={self.y}'
 
+    def __add__(self, other):
+        return Vector(self.x + other.x, self.y + other.y)
+
     def __mul__(self, number):
         return Vector(self.x * number, self.y * number)
 
@@ -26,6 +29,15 @@ class Vector(DataClass):
 
     def shift(self, delta_x, delta_y):
         return Vector(self.x + delta_x, self.y + delta_y)
+
+    def scale(self, other):
+        return Vector(self.x * other.x, self.y * other.y)
+
+    def with_(self, x=None, y=None):
+        return Vector(
+            x=x if x is not None else self.x,
+            y=y if y is not None else self.y
+        )
 
 
 class Direction(Enum):

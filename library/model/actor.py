@@ -54,8 +54,8 @@ class Actor(ABC):
         pass
 
     def correct_position(self):
-        self.position.x %= Grid.size.x
-        self.position.y %= Grid.size.y
+        self.position.x %= self._weak_field().grid.size.x
+        self.position.y %= self._weak_field().grid.size.y
 
     def update(self):
         if self.position.distance(self.cell.shift(0.5, 0.5)) < 0.06:
@@ -98,7 +98,7 @@ class Pacman(Actor):
             EventId.INTERSECTION,
             (self.Mode.NONE,),
             self.Mode.DEAD,
-            lambda args: not services.config['model']['is_god_mode']
+            lambda args: not services.config['debug']['is_god_mode']
         )
         self.state_driver_1.add_transition(
             EventId.PICKUP,
@@ -310,15 +310,15 @@ class Enemy(Actor):
                 return self.chase_target
             else:
                 return Vector(
-                    random.randint(0, Grid.size.x),
-                    random.randint(0, Grid.size.y)
+                    random.randint(0, self._weak_field().grid.size.x),
+                    random.randint(0, self._weak_field().grid.size.y)
                 )
         elif self.mode[0] == self.Mode.DEAD:
             return self.dead_target
         else:
             return Vector(
-                random.randint(0, Grid.size.x),
-                random.randint(0, Grid.size.y)
+                random.randint(0, self._weak_field().grid.size.x),
+                random.randint(0, self._weak_field().grid.size.y)
             )
 
     def _on_crossway(self, event_args):

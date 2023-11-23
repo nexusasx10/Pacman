@@ -10,7 +10,7 @@ from library.view.debug_view import DebugView
 from library.view.sound_engine import SoundEngine
 from library.controller import Controller
 from library.event import EventDispatcher
-from library.interface import Interface
+from library.interface import Interface, GraphicsTkinter
 from library.model.game_driver import GameDriver
 from library.resource_manager import ResourceManager
 from library.view.game_view import View
@@ -41,9 +41,9 @@ class Config(defaultdict):
             return False
 
 
-def config_logging(args):
+def config_logging(config):
     handlers = [logging.StreamHandler(sys.stdout)]
-    if args.debug:
+    if config['debug']['is_debug']:
         handlers.append(logging.FileHandler('pacman.log'))
     logging.basicConfig(
         handlers=handlers,
@@ -60,32 +60,33 @@ def parse_args():
 
 
 def main():
-    args = parse_args()
-    config_logging(args)
-    logging.info('App running')
     services = Services()
     services.config = Config()
     if not services.config.read('config'):
         logging.info('App terminated')
         return
-    services.config['common']['debug'] |= args.debug
-    if services.config['common']['debug']:
+    args = parse_args()
+    services.config['debug']['is_debug'] |= args.debug
+    config_logging(services.config)
+    logging.info('App running')
+    if services.config['debug']['is_debug']:
         logging.info('Debug mode enabled')
     services.event_dispatcher = EventDispatcher()
     services.resources = ResourceManager(services)
-    interface = Interface(services)
+    graphics = GraphicsTkinter(services)
+    interface = Interface(services, graphics)
     if not services.resources.load():
         logging.info('App terminated')
         return
     GameDriver(services)
-    View(services, interface.root)
-    if services.config['common']['debug']:
-        DebugView(services, interface.root)
+    View(services, interface.get_canvas())
+    if services.config['debug']['is_debug']:
+        DebugView(services, interface.get_canvas())
     if services.config['view']['sound_enabled']:
         sound_engine = SoundEngine(services)
         sound_engine.initiate()
         sound_engine.run()
-    Controller(services, interface.root)
+    Controller(services, interface.get_canvas())
     interface.run()
 
 

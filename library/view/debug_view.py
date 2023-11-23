@@ -6,10 +6,10 @@ from library.model.game_driver import GameDriver
 
 class EnemyDrawer:
 
-    def __init__(self, services, display, color):
+    def __init__(self, services, canvas, color):
         self._services = services
-        self._display = display
-        self._display_id = None
+        self._canvas = canvas
+        self._canvas_id = None
         self._color = color
 
     def draw(self, actor):
@@ -22,43 +22,41 @@ class EnemyDrawer:
                 )
         ):
             return
-        self._display_id = self._display.create_line(
-            actor.position.x * Block.size.x,
-            actor.position.y * Block.size.y,
-            actor.get_target().x * Block.size.x,
-            actor.get_target().y * Block.size.y,
-            fill=self._color
+        self._canvas_id = self._canvas.draw_line(
+            actor.position.scale(Block.size),
+            actor.get_target().scale(Block.size),
+            self._color
         )
 
     def clear(self):
-        self._display.delete(self._display_id)
+        self._canvas.clear(self._canvas_id)
 
 
 class DebugView:
 
-    def __init__(self, services, root):
+    def __init__(self, services, canvas):
         self._services = services
-        self._root = root
+        self._canvas = canvas
         self._model = None
         self._actor_drawers = {
             'red_ghost': EnemyDrawer(
                 self._services,
-                self._root.display,
+                self._canvas,
                 '#f00'
             ),
             'pink_ghost': EnemyDrawer(
                 self._services,
-                self._root.display,
+                self._canvas,
                 '#f99'
             ),
             'blue_ghost': EnemyDrawer(
                 self._services,
-                self._root.display,
+                self._canvas,
                 '#0cf'
             ),
             'orange_ghost': EnemyDrawer(
                 self._services,
-                self._root.display,
+                self._canvas,
                 '#f90'
             )
         }

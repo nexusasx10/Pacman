@@ -30,10 +30,10 @@ class Animation:
 
 class AnimationDrawer:
 
-    def __init__(self, services, display):
+    def __init__(self, services, canvas):
         self._services = services
-        self._display = display
-        self._display_id = None
+        self._canvas = canvas
+        self._canvas_id = None
         self._current_animation = None
         self._current_animation_name = None
 
@@ -46,13 +46,11 @@ class AnimationDrawer:
             self._current_animation = copy.copy(animation)
         texture = self._current_animation.get()
         self.clear()
-        self._display_id = self._display.create_image(
-            position.x * Block.size.x + offset.x,
-            position.y * Block.size.y + offset.y,
-            image=texture,
-            anchor='nw'
+        self._canvas_id = self._canvas.draw_image(
+            texture,
+            position.scale(Block.size) + offset
         )
 
     def clear(self):
-        if self._display_id:
-            self._display.delete(self._display_id)
+        if self._canvas_id:
+            self._canvas.clear(self._canvas_id)

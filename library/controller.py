@@ -15,11 +15,11 @@ class Control(Enum):
 
 class Controller:
 
-    def __init__(self, services, root):
+    def __init__(self, services, canvas):
         self._services = services
-        self._root = root
-        self._root.bind('<KeyPress>', self._on_key_press)
-        self._root.protocol('WM_DELETE_WINDOW', self._on_stop)
+        self._canvas = canvas
+        self._canvas._root.bind('<KeyPress>', self._on_key_press)
+        self._canvas._root.protocol('WM_DELETE_WINDOW', self._on_stop)
 
     def _on_key_press(self, event):
         control = None

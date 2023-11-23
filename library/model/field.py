@@ -25,11 +25,9 @@ class Block:
 
 class Grid:
 
-    size = Vector(28, 31)
-
-    def __init__(self, anchors):
-        width, height = self.size.x, self.size.y
-        self.dimensions = [[None for c in range(width)] for r in range(height)]
+    def __init__(self, anchors, size):
+        self.size = size
+        self.dimensions = [[None for c in range(self.size.x)] for r in range(self.size.y)]
         self.anchors = anchors
 
     def __getitem__(self, cell):

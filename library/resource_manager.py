@@ -176,20 +176,32 @@ class ResourceManager:
             except OSError as exc:
                 raise ResourceLoadingError(False, *exc.args)
             data = content.split('\n')
-            self._grids[file_name] = self._validate_grid_data(data)
+            self._grids[file_name] = self._validate_grid_data(data, file_name)
         if not self._grids:
             raise ResourceLoadingError(True, 'Can\'t load grids')
 
-    def _validate_grid_data(self, data):
-        if len(data) != Grid.size.y:
-            raise ResourceLoadingError(False, 'Grid file is corrupted')
-        for line in data:
-            if len(line) != Grid.size.x:
-                raise ResourceLoadingError(False, 'Grid file is corrupted')
-            for char in line:
+    def _validate_grid_data(self, data, file_name):
+        if len(data) == 0:
+            raise ResourceLoadingError(False, f'Grid file {file_name} is empty')
+        width = -1
+        for i, line in enumerate(data):
+            if width == -1:
+                width = len(line)
+                if width == 0:
+                    raise ResourceLoadingError(
+                        False,
+                        f'Bad grid file {file_name}: line {i} is empty'
+                    )
+            elif len(line) != width:
+                raise ResourceLoadingError(
+                    False,
+                    f'Bad grid file {file_name}: line {i} has different size'
+                )
+            for j, char in enumerate(line):
                 if char not in self._block_types:
                     raise ResourceLoadingError(
-                        False, 'Unexpected symbol in grid file: ' + char
+                        False,
+                        f'Bad grid file {file_name}: unexpected symbol "{char}" at line {i} column {j}: '
                     )
         return data
 
@@ -198,16 +210,20 @@ class ResourceManager:
 
     def get_grid(self, grid_name):
         data = self._grids[grid_name]
-        grid = Grid({})
+        size = Vector(len(data[0]), len(data))
+        grid = Grid({}, size)
         for i, line in enumerate(data):
             for j, char in enumerate(line):
                 block_info = self._block_types[char]
                 connections = {}
                 for direction in Direction:
                     o_x, o_y = direction.get_offset()
-                    i_o = (i + o_y) % Grid.size.y
-                    j_o = (j + o_x) % Grid.size.x
-                    connection = self._block_types[data[i_o][j_o]][2]
+                    i_o = (i + o_y) % size.y
+                    j_o = (j + o_x) % size.x
+                    try:
+                        connection = self._block_types[data[i_o][j_o]][2]
+                    except:
+                        pass
                     connections[direction] = connection
                 cell = Vector(j, i)
                 grid[cell] = Block(cell, block_info[0], connections)
