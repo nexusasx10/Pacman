@@ -4,6 +4,8 @@ from itertools import chain
 from os import listdir, getcwd, path as paths
 from collections import defaultdict
 
+from library.config import Config
+
 try:
     from simpleaudio import WaveObject
 except ModuleNotFoundError:
@@ -12,7 +14,7 @@ from PIL import Image, ImageTk
 
 from library.exceptions import ResourceLoadingError
 from library.geometry import Vector, Direction
-from library.graphics import Animation
+from library.graphics import Animation, Sprite
 from library.model.field import Block, Grid
 
 
@@ -41,12 +43,12 @@ class ResourceManager:
     }
 
     def __init__(self, services):
-        self._services = services
-        self._max_save_count = self._services.config['common']['max_saves']
-        self._max_rating_count = self._services.config['common']['max_ratings']
+        self._config = services[Config]
+        self._max_save_count = self._config['common']['max_saves']
+        self._max_rating_count = self._config['common']['max_ratings']
         self._grids = {}
-        self._textures = defaultdict(list)
-        self._animations = defaultdict(dict)
+        self._sprite = defaultdict(list)
+        self._animations = {}
         self._sounds = {}
         self._ratings = []
         self._saves = {
@@ -72,10 +74,10 @@ class ResourceManager:
                     return False
         return True
 
-    def _get_fallback_texture(self):
-        if not self._fallback_texture:
-            texture_width = self._services.config['view']['texture_width']
-            texture_height = self._services.config['view']['texture_height']
+    def _get_fallback_sprite(self):
+        if not self._fallback_sprite:
+            texture_width = self._config['view']['px_per_unit']
+            texture_height = self._config['view']['px_per_unit']
             image = Image.new('RGB', (texture_width, texture_height), '#FF0000')
             for i in range(texture_width):
                 for j in range(texture_height):
@@ -85,24 +87,25 @@ class ResourceManager:
                         color = (255, 0, 255)
                     image.putpixel((i, j), color)
 
-            self._fallback_texture = ImageTk.PhotoImage(image)
-        return self._fallback_texture
+            texture = ImageTk.PhotoImage(image)
+            self._fallback_sprite = Sprite(texture)
+        return self._fallback_sprite
 
-    _fallback_texture = None
+    _fallback_sprite = None
 
     def _load_textures(self):
-        texture_width = self._services.config['view']['texture_width']
-        texture_height = self._services.config['view']['texture_height']
+        texture_width = self._config['view']['px_per_unit'] * 2
+        texture_height = self._config['view']['px_per_unit'] * 2
         for file_name in listdir(self._texture_path):
             if not file_name.endswith('.png'):
                 continue
             try:
-                image = Image.open(paths.join(self._texture_path, file_name))
+                atlas = Image.open(paths.join(self._texture_path, file_name))
             except OSError as exc:
                 raise ResourceLoadingError(True, *exc.args)
-            for j in range(image.height // texture_height):
-                for i in range(image.width // texture_width):
-                    texture = image.crop(
+            for j in range(atlas.height // texture_height):
+                for i in range(atlas.width // texture_width):
+                    texture = atlas.crop(
                         (
                             i * texture_width,
                             j * texture_height,
@@ -111,13 +114,14 @@ class ResourceManager:
                         )
                     )
                     name = paths.splitext(paths.basename(file_name))[0]
-                    self._textures[name].append(ImageTk.PhotoImage(texture))
+                    image = ImageTk.PhotoImage(texture)
+                    self._sprite[name].append(image)
 
-    def get_texture(self, name, index):
-        if name in self._textures:
-            return self._textures[name][index]
+    def get_sprite(self, name):
+        if name in self._sprite:
+            return self._sprite[name]
         else:
-            return self._get_fallback_texture()
+            return self._get_fallback_sprite()
 
     def _load_animations(self):
         parser = configparser.ConfigParser(delimiters=('=',))
@@ -127,28 +131,58 @@ class ResourceManager:
         for section in parser:
             if section == 'DEFAULT':
                 continue
-            file = None
             for key in parser[section]:
-                if key == 'file':
-                    file = parser[section][key]
-                    continue
                 value = parser[section][key]
-                repeat = value.startswith('R')
-                if repeat:
-                    value = value[1:]
-                sequence = value.split(',')
-                animation = []
-                for item in sequence:
+                params = {}
+                i = 0
+                if value[i] == '[':
+                    cur_param_name = ''
+                    cur_param_value = ''
+                    is_name = True
+                    while i < len(value):
+                        i += 1
+                        match value[i]:
+                            case ']':
+                                i += 1
+                                break
+                            case ' ':
+                                continue
+                            case '=':
+                                is_name = False
+                            case ',':
+                                params[cur_param_name] = cur_param_value
+                                cur_param_name = ''
+                                cur_param_value = ''
+                                is_name = True
+                            case _:
+                                if is_name:
+                                    cur_param_name += value[i]
+                                else:
+                                    cur_param_value += value[i]
+                value = value[i:]
+                value.replace(' ', '')
+                sequence_raw = value.split(',')
+                sequence = []
+                for item in sequence_raw:
                     if 'x' in item:
                         item = item.split('x')
-                        animation.extend([int(item[0])] * int(item[1]))
+                        sequence.extend([int(item[0])] * int(item[1]))
                     else:
-                        animation.append(int(item))
-                self._animations[section][key] = file, animation, repeat
+                        sequence.append(int(item))
+                name = f'{section}/{key}'
+                self._animations[name] = Animation(sequence, params)
 
-    def get_animation(self, section, key):
-        if section in self._animations and key in self._animations[section]:
-            return Animation(self._services, *self._animations[section][key])
+    _fallback_animation = None
+
+    def _get_fallback_animation(self):
+        if not self._fallback_animation:
+            self._fallback_animation = Animation((0,), {})
+        return self._fallback_animation
+
+    def get_animation(self, name):
+        if name in self._animations:
+            return self._animations[name]
+        return self._get_fallback_animation()
 
     def _load_sounds(self):
         if not WaveObject:
@@ -309,5 +343,5 @@ class ResourceManager:
         self._load_saves()
 
     @staticmethod
-    def get_icon():
+    def get_icon_path():
         return paths.join(getcwd(), 'resources', 'pacman.ico')

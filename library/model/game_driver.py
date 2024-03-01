@@ -3,14 +3,16 @@ from enum import Enum
 
 import datetime
 
+from library.config import Config
 from library.controller import Control
-from library.event import EventId
+from library.event import EventId, EventDispatcher
 from library.model.actor import Pacman, RedGhost, PinkGhost, BlueGhost, \
     OrangeGhost, Enemy
 from library.model.field import Field, Block
 from library.geometry import Direction, Vector
 from library.model.menu import Menu, PageItem, RatingsItem, RecordItem, SaveItem, \
     LoadItem
+from library.resource_manager import ResourceManager
 from library.time import Scheduler
 
 
@@ -32,9 +34,12 @@ class GameDriver:
 
     def __init__(self, services):
         self._services = services
+        self._event_dispatcher = self._services[EventDispatcher]
+        self._resources = self._services[ResourceManager]
+        self._config = self._services[Config]
         self.menu = None
         self._init_menu()
-        self._scheduler = Scheduler(self._services.event_dispatcher)
+        self._scheduler = Scheduler(self._event_dispatcher)
         self.mode = self.Mode.MENU
         self.time = None
         self.grid = None
@@ -44,14 +49,14 @@ class GameDriver:
         self.lives = None
         self.field = None
         self._dots = None
-        self._services.event_dispatcher.subscribe(EventId.TICK, self._on_tick, 2)
-        self._services.event_dispatcher.subscribe(EventId.PICKUP, self._on_pickup)
-        self._services.event_dispatcher.subscribe(EventId.CONTROL, self._on_control)
-        self._services.event_dispatcher.subscribe(EventId.STOP, self._on_stop)
-        self._services.event_dispatcher.subscribe(EventId.GAME_START, self._on_game_start)
-        self._services.event_dispatcher.subscribe(EventId.GAME_END, self._on_game_end)
-        self._services.event_dispatcher.subscribe(EventId.GAME_RESTART, self._on_game_restart)
-        self._services.event_dispatcher.subscribe(EventId.NEXT_LEVEL, self._on_next_level)
+        self._event_dispatcher.subscribe(EventId.TICK, self._on_tick, 2)
+        self._event_dispatcher.subscribe(EventId.PICKUP, self._on_pickup)
+        self._event_dispatcher.subscribe(EventId.CONTROL, self._on_control)
+        self._event_dispatcher.subscribe(EventId.STOP, self._on_stop)
+        self._event_dispatcher.subscribe(EventId.GAME_START, self._on_game_start)
+        self._event_dispatcher.subscribe(EventId.GAME_END, self._on_game_end)
+        self._event_dispatcher.subscribe(EventId.GAME_RESTART, self._on_game_restart)
+        self._event_dispatcher.subscribe(EventId.NEXT_LEVEL, self._on_next_level)
 
     def _init_menu(self):
         menu = Menu()
@@ -83,10 +88,10 @@ class GameDriver:
             'yes',
             None,
             False,
-            lambda: self._services.event_dispatcher.fire(EventId.STOP, self)
+            lambda: self._event_dispatcher.fire(EventId.STOP, self)
         )
 
-        for grid in self._services.resources.list_grids():
+        for grid in self._resources.list_grids():
             menu.select_grid_item.add_item(
                 grid,
                 menu.select_difficulty_item,
@@ -130,14 +135,14 @@ class GameDriver:
 
         def save_and_destroy():
             self.save_game('quick')
-            self._services.event_dispatcher.fire(EventId.DESTROY, self)
+            self._event_dispatcher.fire(EventId.DESTROY, self)
 
         menu.save_offer_item2.add_item('yes', None, False, save_and_destroy)
         menu.save_offer_item2.add_item(
             'no',
             None,
             False,
-            lambda: self._services.event_dispatcher.fire(EventId.DESTROY, self)
+            lambda: self._event_dispatcher.fire(EventId.DESTROY, self)
         )
         menu.save_offer_item2.add_item('cancel', menu.pause_item, False)
 
@@ -145,10 +150,10 @@ class GameDriver:
             'ok',
             menu.root_item,
             False,
-            lambda: self._services.resources.add_rating(
+            lambda: self._resources.add_rating(
                 ''.join(
                     map(
-                        lambda i: self._services.config['model']['symbols'][i],
+                        lambda i: self._config['model']['symbols'][i],
                         menu.record_item.cache['name']
                     )
                 ),
@@ -168,9 +173,9 @@ class GameDriver:
         self.scores = scores
         self.lives = lives
         self.field = Field(
-            self._services, self._services.resources.get_grid(grid)
+            self._services, self._resources.get_grid(grid)
         )
-        self._dots = self._services.config['model']['dot_count']
+        self._dots = self._config['model']['dot_count']
 
     def _reset(self):
         self._scheduler.reset()
@@ -186,17 +191,27 @@ class GameDriver:
         self.field = None
         self._dots = None
 
+    def get_size(self):
+        match self.mode:
+            case self.Mode.PLAY:
+                return self.field.grid.size + Vector(16, 0)
+            case _:
+                return Vector(
+                    self._config['model']['default_width'],
+                    self._config['model']['default_height']
+                )
+
     def new_game(self, difficulty, grid):
         self._reset()
-        lives = self._services.config['model']['start_lives']
+        lives = self._config['model']['start_lives']
         self._initiate(0, grid, difficulty, 1, 0, lives)
-        self._services.event_dispatcher.fire(EventId.GAME_INIT, self)
+        self._event_dispatcher.fire(EventId.GAME_INIT, self)
         if difficulty == self.Difficulty.EASY:
             enemy_start_mode = Enemy.Mode.FREE
         elif difficulty == self.Difficulty.NORMAL:
             enemy_start_mode = Enemy.Mode.SCATTER
             self._scheduler.schedule(1000, EventId.SWITCH_TIMEOUT)
-            self._services.event_dispatcher.subscribe(EventId.SWITCH_TIMEOUT, self._on_switch_timeout)
+            self._event_dispatcher.subscribe(EventId.SWITCH_TIMEOUT, self._on_switch_timeout)
         else:
             enemy_start_mode = Enemy.Mode.CHASE
         self.field.spawn_actor(
@@ -236,7 +251,7 @@ class GameDriver:
         self._scheduler.schedule(500, EventId.ORANGE_GHOST_OUT)
 
     def load_game(self, save_index):
-        save = self._services.resources.get_save(save_index)
+        save = self._resources.get_save(save_index)
         self._reset()
         time = save['game']['time']
         grid = save['game']['grid']
@@ -407,17 +422,17 @@ class GameDriver:
                 'last_node': str(self.field.actors['orange_ghost'].last_node),
             }
         }
-        self._services.resources.add_save(save_index, save)
+        self._resources.add_save(save_index, save)
         self.mode = mode
 
     def _on_next_level(self, event_args):
         for actor in self.field.actors.values():
             actor.destroy()
         self.field = Field(
-            self._services, self._services.resources.get_grid(self.grid)
+            self._services, self._resources.get_grid(self.grid)
         )
-        self._dots = self._services.config['model']['dot_count']  # todo
-        self._services.event_dispatcher.fire(EventId.GAME_RESTART, self)
+        self._dots = self._config['model']['dot_count']  # todo
+        self._event_dispatcher.fire(EventId.GAME_RESTART, self)
 
     def _on_game_restart(self, event_args):
         self._scheduler.reset()
@@ -426,7 +441,7 @@ class GameDriver:
         elif self.difficulty == self.Difficulty.NORMAL:
             enemy_start_mode = Enemy.Mode.SCATTER
             self._scheduler.schedule(1000, EventId.SWITCH_TIMEOUT)
-            self._services.event_dispatcher.subscribe(EventId.SWITCH_TIMEOUT, self._on_switch_timeout)
+            self._event_dispatcher.subscribe(EventId.SWITCH_TIMEOUT, self._on_switch_timeout)
         else:
             enemy_start_mode = Enemy.Mode.CHASE
         self.field.spawn_actor(
@@ -477,10 +492,10 @@ class GameDriver:
             if self._dots == 0:
                 self.mode = self.Mode.FREE
                 self.level += 1
-                if self.level > self._services.config['model']['max_level']:
+                if self.level > self._config['model']['max_level']:
                     self.mode = self.Mode.WIN
                 else:
-                    self._services.event_dispatcher.fire(EventId.NEXT_LEVEL, self)
+                    self._event_dispatcher.fire(EventId.NEXT_LEVEL, self)
             elif self.field.actors['pacman'].mode[0] == Pacman.Mode.DEAD:
                 self.mode = self.Mode.FREE
                 self.lives -= 1
@@ -491,7 +506,7 @@ class GameDriver:
             self.field.update()
         elif self.mode == self.Mode.FREE:
             self.field.update()
-        self._services.event_dispatcher.fire(EventId.MODEL_UPDATE, self, model=self)
+        self._event_dispatcher.fire(EventId.MODEL_UPDATE, self, model=self)
 
     def _on_control(self, event_args):
         if self.mode == self.Mode.MENU:
@@ -524,7 +539,7 @@ class GameDriver:
             self.menu.current_page.reset()
             self.mode = self.Mode.MENU
         else:
-            self._services.event_dispatcher.fire(EventId.DESTROY, self)
+            self._event_dispatcher.fire(EventId.DESTROY, self)
 
     def _on_switch_timeout(self, event_args):
         self._scheduler.schedule(1000, EventId.SWITCH_TIMEOUT)

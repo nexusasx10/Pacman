@@ -1,5 +1,4 @@
 [block]
-file = block
 fruit_1 = 0
 fruit_2 = 1
 fruit_3 = 2
@@ -7,7 +6,7 @@ fruit_4 = 3
 fruit_5 = 4
 fruit_6 = 5
 dot = 6
-energizer = R7x20,8,9,10,11,12,13,14
+energizer = [is_looped] 7x20, 8, 9, 10, 11, 12, 13, 14
 wall_1 = 15
 wall_2 = 16
 wall_3 = 17
@@ -24,72 +23,24 @@ wall_13 = 27
 door = 28
 empty = 29
 
-[red_ghost]
-file = enemy
-north = R0x4,1x4
-west = R2x4,3x4
-south = R4x4,5x4
-east = R6x4,7x4
-frightened = R32x4,33x4
-frightened_end = R34x4,35x4,32x4,33x4
-dead_north = 36
-dead_west = 37
-dead_south = 38
-dead_east = 39
+[ghost]
+walking = [is_looped, type_offset = 2] 0x4, 1x4
+frightened = [is_looped] 9x4, 10x4
+frightened_end = [is_looped] 11x4, 12x4, 9x4, 10x4
+dead = 8
 
-[pink_ghost]
-file = enemy
-north = R8x4,9x4
-west = R10x4,11x4
-south = R12x4,13x4
-east = R14x4,15x4
-frightened = R32x4,33x4
-frightened_end = R34x4,35x4,32x4,33x4
-dead_north = 36
-dead_west = 37
-dead_south = 38
-dead_east = 39
-
-[blue_ghost]
-file = enemy
-north = R16x4,17x4
-west = R18x4,19x4
-south = R20x4,21x4
-east = R22x4,23x4
-frightened = R32x4,33x4
-frightened_end = R34x4,35x4,32x4,33x4
-dead_north = 36
-dead_west = 37
-dead_south = 38
-dead_east = 39
-
-[orange_ghost]
-file = enemy
-north = R24x4,25x4
-west = R26x4,27x4
-south = R28x4,29x4
-east = R30x4,31x4
-frightened = R32x4,33x4
-frightened_end = R34x4,35x4,32x4,33x4
-dead_north = 36
-dead_west = 37
-dead_south = 38
-dead_east = 39
+[ghost/eyes]
+walking = [direction_offset = 1] 13x1
+frightened = 8
+frightened_end = 8
+dead = [direction_offset] 13x1
 
 [pacman]
-file = pacman
-walking_north = R2x2,3x2,0x2,1x2
-walking_west = R6x2,7x2,4x2,5x2
-walking_south = R10x2,11x2,8x2,9x2
-walking_east = R14x2,15x2,12x2,13x2
-waiting_north = 2
-waiting_west = 6
-waiting_south = 10
-waiting_east = 14
-dead = 1x16,2x2,3x2,17x2,18x2,19x2,20x2,21x2,22x2,23
+walking = [is_looped, direction_offset = 4] 2x2, 3x2, 0x2, 1x2
+waiting = [direction_offset = 4] 2
+dead = 1x16, 2x2, 3x2, 17x2, 18x2, 19x2, 20x2, 21x2, 22x2, 23
 
 [char]
-file = symbols
 a = 0
 b = 1
 c = 2

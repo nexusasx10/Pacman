@@ -2,43 +2,17 @@
 import logging
 import sys
 from argparse import ArgumentParser
-from collections import defaultdict
-from configparser import ConfigParser
 
+from library.config import Config
 from library.utils import Services
 from library.view.debug_view import DebugView
 from library.view.sound_engine import SoundEngine
 from library.controller import Controller
 from library.event import EventDispatcher
-from library.interface import Interface, GraphicsTkinter
+from library.interface import Interface, GraphicsTkinter, Graphics
 from library.model.game_driver import GameDriver
 from library.resource_manager import ResourceManager
 from library.view.game_view import View
-
-
-class Config(defaultdict):
-    def __init__(self):
-        super().__init__(dict)
-
-    def read(self, *file_paths):  # todo
-        conf = ConfigParser()
-        read = conf.read(file_paths, encoding='utf-8')
-        if len(read) == len(file_paths):
-            for section in conf.keys():
-                for key in conf[section].keys():
-                    for met in (conf.getint, conf.getfloat, conf.getboolean):
-                        try:
-                            value = met(section, key)
-                            break
-                        except ValueError:
-                            continue
-                    else:
-                        value = conf.get(section, key)
-                    self[section][key] = value
-            return True
-        else:
-            logging.error('Can\'t read config file')
-            return False
 
 
 def config_logging(config):
@@ -61,28 +35,31 @@ def parse_args():
 
 def main():
     services = Services()
-    services.config = Config()
-    if not services.config.read('config'):
+    config = Config()
+    services[Config] = config
+    if not config.read('config'):
         logging.info('App terminated')
         return
     args = parse_args()
-    services.config['debug']['is_debug'] |= args.debug
-    config_logging(services.config)
+    config['debug']['is_debug'] |= args.debug
+    config_logging(config)
     logging.info('App running')
-    if services.config['debug']['is_debug']:
+    if config['debug']['is_debug']:
         logging.info('Debug mode enabled')
-    services.event_dispatcher = EventDispatcher()
-    services.resources = ResourceManager(services)
+    services[EventDispatcher] = EventDispatcher()
+    resources = ResourceManager(services)
+    services[ResourceManager] = resources
     graphics = GraphicsTkinter(services)
+    services[Graphics] = graphics
     interface = Interface(services, graphics)
-    if not services.resources.load():
+    if not resources.load():
         logging.info('App terminated')
         return
     GameDriver(services)
     View(services, interface.get_canvas())
-    if services.config['debug']['is_debug']:
+    if config['debug']['is_debug']:
         DebugView(services, interface.get_canvas())
-    if services.config['view']['sound_enabled']:
+    if config['view']['sound_enabled']:
         sound_engine = SoundEngine(services)
         sound_engine.initiate()
         sound_engine.run()

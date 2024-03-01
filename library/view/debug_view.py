@@ -1,4 +1,4 @@
-from library.event import EventId
+from library.event import EventId, EventDispatcher
 from library.model.actor import Enemy
 from library.model.field import Block
 from library.model.game_driver import GameDriver
@@ -36,6 +36,7 @@ class DebugView:
 
     def __init__(self, services, canvas):
         self._services = services
+        self._event_dispatcher = self._services[EventDispatcher]
         self._canvas = canvas
         self._model = None
         self._actor_drawers = {
@@ -60,8 +61,8 @@ class DebugView:
                 '#f90'
             )
         }
-        self._services.event_dispatcher.subscribe(EventId.MODEL_UPDATE, self._on_model_update)
-        self._services.event_dispatcher.subscribe(EventId.REDRAW, self._on_redraw)
+        self._event_dispatcher.subscribe(EventId.MODEL_UPDATE, self._on_model_update)
+        self._event_dispatcher.subscribe(EventId.REDRAW, self._on_redraw)
 
     def _on_model_update(self, event_args):
         self._model = event_args.model

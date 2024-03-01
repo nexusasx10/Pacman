@@ -5,28 +5,31 @@ import weakref
 from abc import ABC, abstractmethod
 from enum import Enum
 
+from library.config import Config
 from library.controller import Control
-from library.event import EventId
+from library.event import EventId, EventDispatcher
 from library.geometry import Vector, Direction
-from library.model.field import Block, Grid
+from library.model.field import Block
 from library.model.state_driver import StateDriver
 
 
 class Actor(ABC):
-    """Абстрактный базовый класс персонажа."""
+
     speeds = None
+    size = Vector(2, 2)
 
     def __init__(self, services, name, position, direction, field):
         self._services = services
+        self._event_dispatcher = self._services[EventDispatcher]
         self.name = name
         self.position = position
         self.direction = direction
         self.max_speed = 0.1  # todo outer, переделать проверки перекрёстков
         self._weak_field = weakref.ref(field)
-        self._services.event_dispatcher.subscribe(EventId.CROSSWAY, self._on_crossway)
+        self._event_dispatcher.subscribe(EventId.CROSSWAY, self._on_crossway)
 
     def destroy(self):
-        self._services.event_dispatcher.unsubscribe(EventId.CROSSWAY, self._on_crossway)
+        self._event_dispatcher.unsubscribe(EventId.CROSSWAY, self._on_crossway)
 
     @property
     @abstractmethod
@@ -93,12 +96,13 @@ class Pacman(Actor):
 
     def __init__(self, services, position, direction, mode, field):
         super().__init__(services, 'pacman', position, direction, field)
-        self.state_driver_1 = StateDriver(services, mode[0], self.name)
+
+        self.state_driver_1 = StateDriver(self._event_dispatcher, mode[0], self.name)
         self.state_driver_1.add_transition(
             EventId.INTERSECTION,
             (self.Mode.NONE,),
             self.Mode.DEAD,
-            lambda args: not services.config['debug']['is_god_mode']
+            lambda args: not services[Config]['debug']['is_god_mode']
         )
         self.state_driver_1.add_transition(
             EventId.PICKUP,
@@ -111,7 +115,7 @@ class Pacman(Actor):
             (self.Mode.ENERGIZER,),
             self.Mode.NONE
         )
-        self.state_driver_2 = StateDriver(services, mode[1], self.name)
+        self.state_driver_2 = StateDriver(self._event_dispatcher, mode[1], self.name)
         self.state_driver_2.add_transition(
             EventId.CROSSWAY,
             (self.Mode.WALKING,),
@@ -134,11 +138,11 @@ class Pacman(Actor):
         )
         self.next_direction = None
         self.last_turn = None
-        self._services.event_dispatcher.subscribe(EventId.CONTROL, self._on_control)  # todo
+        self._event_dispatcher.subscribe(EventId.CONTROL, self._on_control)  # todo
 
     def destroy(self):
         super().destroy()
-        self._services.event_dispatcher.unsubscribe(EventId.CONTROL, self._on_control)
+        self._event_dispatcher.unsubscribe(EventId.CONTROL, self._on_control)
         self.state_driver_1.reset()
         self.state_driver_2.reset()
 
@@ -174,7 +178,6 @@ class Pacman(Actor):
             self.next_direction = None
 
 
-# todo разворот при смене режима
 class Enemy(Actor):
 
     class Mode(Enum):
@@ -197,7 +200,8 @@ class Enemy(Actor):
 
     def __init__(self, services, name, position, direction, mode, field):
         super().__init__(services, name, position, direction, field)
-        self.state_driver_1 = StateDriver(services, mode[0], self.name)
+
+        self.state_driver_1 = StateDriver(self._event_dispatcher, mode[0], self.name)
         self.state_driver_1.add_transition(
             EventId.INTERSECTION,
             (self.Mode.FRIGHTENED, self.Mode.FRIGHTENED_END),
@@ -226,7 +230,7 @@ class Enemy(Actor):
             self.Mode.NONE,
             lambda a: a.name == self.name
         )
-        self.state_driver_2 = StateDriver(services, mode[1], self.name)
+        self.state_driver_2 = StateDriver(self._event_dispatcher, mode[1], self.name)
         self.state_driver_2.add_transition(
             EventId.SWITCH_TIMEOUT,
             (self.Mode.CHASE,),
@@ -237,7 +241,7 @@ class Enemy(Actor):
             (self.Mode.SCATTER,),
             self.Mode.CHASE
         )
-        self.state_driver_3 = StateDriver(services, mode[2], self.name)
+        self.state_driver_3 = StateDriver(self._event_dispatcher, mode[2], self.name)
         self.state_driver_3.add_transition(
             EventId.GHOST_BEHIND_DOOR,
             (self.Mode.EXIT,),
@@ -246,11 +250,11 @@ class Enemy(Actor):
         )
         self.last_turn = None
         self.last_node = None
-        self._services.event_dispatcher.subscribe(EventId.GHOST_BEHIND_DOOR, self._on_ghost_behind_door, -1)
+        self._event_dispatcher.subscribe(EventId.GHOST_BEHIND_DOOR, self._on_ghost_behind_door, -1)
 
     def destroy(self):
         super().destroy()
-        self._services.event_dispatcher.unsubscribe(EventId.GHOST_BEHIND_DOOR, self._on_ghost_behind_door, -1)
+        self._event_dispatcher.unsubscribe(EventId.GHOST_BEHIND_DOOR, self._on_ghost_behind_door, -1)
         self.state_driver_1.reset()
         self.state_driver_2.reset()
         self.state_driver_3.reset()

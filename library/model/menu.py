@@ -1,5 +1,8 @@
 from itertools import chain
 
+from library.config import Config
+from library.resource_manager import ResourceManager
+
 
 class Menu:
 
@@ -82,7 +85,7 @@ class RatingsItem(PageItem):
 
     @property
     def ratings(self):
-        return self._services.resources.list_ratings()
+        return self._services[ResourceManager].list_ratings()
 
 
 class SaveItem(PageItem):
@@ -104,7 +107,7 @@ class SaveItem(PageItem):
                         True,
                         lambda i_=i: self._save_func(i_)
                     )
-                    for i, s in self._services.resources.list_saves()
+                    for i, s in self._services[ResourceManager].list_saves()
                 ),
                 self._items
             )
@@ -137,7 +140,7 @@ class LoadItem(PageItem):
                         False,
                         lambda idx=index: self._load_func(idx)
                     )
-                    for index, save in self._services.resources.list_saves()
+                    for index, save in self._services[ResourceManager].list_saves()
                     if save
                 ),
                 self._items
@@ -156,9 +159,9 @@ class RecordItem(PageItem):
 
     def __init__(self, services, title):
         super().__init__(title)
-        self._services = services
+        self._config = services[Config]
         self.char_pointer = 0
-        max_name_length = self._services.config['common']['max_name_length']
+        max_name_length = self._config['common']['max_name_length']
         self.cache['name'] = [0] * max_name_length
 
     def up(self):
@@ -172,7 +175,7 @@ class RecordItem(PageItem):
         if self.char_pointer == len(self.cache['name']):
             super().down()
             return
-        symbol_count = len(self._services.config['model']['symbols'])
+        symbol_count = len(self._config['model']['symbols'])
         if self.cache['name'][self.char_pointer] < symbol_count - 1:
             self.cache['name'][self.char_pointer] += 1
 
@@ -187,5 +190,5 @@ class RecordItem(PageItem):
     def reset(self):
         super().reset()
         self.char_pointer = 0
-        max_name_length = self._services.config['common']['max_name_length']
+        max_name_length = self._config['common']['max_name_length']
         self.cache['name'] = [0] * max_name_length

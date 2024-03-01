@@ -1,7 +1,7 @@
 import time
 from collections import defaultdict, deque
 
-from library.event import EventId
+from library.event import EventId, EventDispatcher
 
 
 class Stopwatch:
@@ -22,7 +22,7 @@ class Stopwatch:
 class Timer:
 
     def __init__(self, services, interval_ms):
-        self._event_dispatcher = services.event_dispatcher
+        self._event_dispatcher = services[EventDispatcher]
         self._stopwatch = Stopwatch()
         self.interval_ms = interval_ms
         self.tick_count = 0

@@ -4,10 +4,11 @@ from threading import Thread, Lock
 
 import time
 
-from library.event import EventId
+from library.event import EventId, EventDispatcher
 from library.model.actor import Enemy, Pacman
 from library.model.field import Block
 from library.model.game_driver import GameDriver
+from library.resource_manager import ResourceManager
 
 
 class SoundEngine:
@@ -24,7 +25,7 @@ class SoundEngine:
         self.running = False
         self._model = None
         self._lock = Lock()
-        self._services.event_dispatcher.subscribe(EventId.MODEL_UPDATE, self._on_model_update)
+        self._services[EventDispatcher].subscribe(EventId.MODEL_UPDATE, self._on_model_update)
 
     def _on_model_update(self, event_args):
         self._model = event_args.model
@@ -111,7 +112,7 @@ class SoundEngine:
         def handler(event_args):
             if not condition or condition(event_args):
                 self.play(sound_id, channel_id, repeat, action)
-        self._services.event_dispatcher.subscribe(event_id, handler)
+        self._services[EventDispatcher].subscribe(event_id, handler)
 
     def _working_cycle(self):
         while self.running:
@@ -144,7 +145,7 @@ class SoundEngine:
         if not repeat:
             channel_stack.pop()
             return
-        sound = self._services.resources.get_sound(sound_id)
+        sound = self._services[ResourceManager].get_sound(sound_id)
         if not sound:
             return
         play_obj = sound.play()
@@ -155,7 +156,7 @@ class SoundEngine:
             if self._channels[channel_id]:
                 self._channels[channel_id][-1][1].stop()
                 self._channels[channel_id].clear()
-        sound = self._services.resources.get_sound(sound_id)
+        sound = self._services[ResourceManager].get_sound(sound_id)
         if not sound:
             return
         play_obj = sound.play()

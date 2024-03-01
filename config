@@ -1,5 +1,4 @@
 
-
 [common]
 max_saves = 10
 max_ratings = 10
@@ -9,25 +8,22 @@ max_name_length = 6
 is_debug = False
 is_god_mode = False
 
-
 [interface]
 app_name = Pacman
 version = 0.5
 
-
 [view]
 fps = 60
-texture_width = 32
-texture_height = 32
 sound_enabled = True
-
+px_per_unit = 16
 
 [model]
 symbols = abcdefghijklmnopqrstuvwxyz0123456789-
 dot_count = 240
 max_level = 5
 start_lives = 3
-
+default_width = 44
+default_height = 31
 
 [controls]
 w = up

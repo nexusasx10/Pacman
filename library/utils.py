@@ -18,5 +18,34 @@ class DataClass:
 
 
 class Services:
-    def register(self, name, service):
-        self.__dict__[name] = service
+
+    def __init__(self):
+        self.container = {}
+
+    def __getitem__(self, type_):
+        return self.container[type_]
+
+    def __setitem__(self, type_, value):
+        self.container[type_] = value
+
+
+class classproperty:
+
+    def __init__(self, getter):
+        self._getter = getter
+
+    def __get__(self, owner, cls):
+        return self._getter(cls)
+
+
+def not_none_or_default(value, default):
+    if value is not None:
+        return value
+    return default
+
+
+def try_call(func, default_result=None, *args, **kwargs):
+    if func is not None:
+        return func(*args, **kwargs)
+    else:
+        return default_result

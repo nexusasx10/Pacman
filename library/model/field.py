@@ -1,13 +1,13 @@
 import itertools
 from enum import Enum
 
-from library.event import EventId
+from library.event import EventId, EventDispatcher
 from library.geometry import Direction, Vector
 
 
 class Block:
 
-    size = Vector(16, 16)
+    size = Vector(1, 1)
 
     class Content(Enum):
         EMPTY = 0
@@ -102,7 +102,7 @@ class Field:
             if enemy == pacman:
                 continue
             if pacman.cell == enemy.cell:
-                self._services.event_dispatcher.fire(EventId.INTERSECTION, self, enemy=enemy)
+                self._services[EventDispatcher].fire(EventId.INTERSECTION, self, enemy=enemy)
 
     def _notify_crossways(self):
         for actor in self.actors.values():
@@ -113,12 +113,12 @@ class Field:
             ):
                 # todo повысить погрешность и выравнивать положение
                 if actor.position.distance(actor.cell.shift(0.5, 0.5)) < 0.15:
-                    self._services.event_dispatcher.fire(EventId.CROSSWAY, self, actor=actor)
+                    self._services[EventDispatcher].fire(EventId.CROSSWAY, self, actor=actor)
 
     def _notify_pickups(self):
         pacman = self.actors['pacman']
         if self.grid[pacman.cell].content != Block.Content.EMPTY:
-            self._services.event_dispatcher.fire(EventId.PICKUP, self, pickup=self.grid[pacman.cell].content)
+            self._services[EventDispatcher].fire(EventId.PICKUP, self, pickup=self.grid[pacman.cell].content)
             self.grid[pacman.cell].content = Block.Content.EMPTY
 
     def _notify_ghost_events(self):
@@ -126,8 +126,8 @@ class Field:
             if actor.name == 'pacman':
                 continue
             if actor.position.distance(actor.dead_target) < 0.15:
-                self._services.event_dispatcher.fire(EventId.GHOST_ON_DEAD_TARGET, self, name=actor.name)
+                self._services[EventDispatcher].fire(EventId.GHOST_ON_DEAD_TARGET, self, name=actor.name)
             if actor.position.distance(
                     self.grid.anchors['enemies'].shift(4, -0.5)
             ) < 0.15:
-                self._services.event_dispatcher.fire(EventId.GHOST_BEHIND_DOOR, self, name=actor.name)
+                self._services[EventDispatcher].fire(EventId.GHOST_BEHIND_DOOR, self, name=actor.name)

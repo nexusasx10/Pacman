@@ -3,9 +3,10 @@ import tkinter
 
 from os import name as os_name
 
-from library.event import EventId
+from library.config import Config
+from library.event import EventId, EventDispatcher
 from library.geometry import Vector
-from library.model.field import Block
+from library.resource_manager import ResourceManager
 from library.time import Stopwatch
 
 
@@ -17,7 +18,7 @@ class Canvas:
     def set_title(self, title):
         pass
 
-    def set_icon(self, image):
+    def set_icon_path(self, image):
         pass
 
     def set_size(self, size):
@@ -32,14 +33,18 @@ class Canvas:
 
 class Graphics:
 
-    size = Vector(44, 31)
-
     def __init__(self, services):
         self._services = services
 
         self._redraw_delay = 0
         self.tick_count = 0
         self._update_callback = None
+
+    def world_space_to_screen_space(self, position):
+        pass
+
+    def screen_space_to_world_space(self, position):
+        pass
 
     def create_canvas(self) -> Canvas:
         pass
@@ -64,12 +69,18 @@ class GraphicsTkinter(Graphics):
 
         self._root = None
 
+    def world_space_to_screen_space(self, position):
+        return position * self._services[Config]['view']['px_per_unit']
+
+    def screen_space_to_world_space(self, position):
+        return position / self._services[Config]['view']['px_per_unit']
+
     def create_canvas(self):
         self._root = tkinter.Tk()
-        return CanvasTkinter(self._root)
+        return CanvasTkinter(self, self._root)
 
     def run(self):
-        self._services.event_dispatcher.subscribe(EventId.DESTROY, self._on_destroy)
+        self._services[EventDispatcher].subscribe(EventId.DESTROY, self._on_destroy)
         self._root.after(self._redraw_delay, self._update)
 
         try:
@@ -90,9 +101,10 @@ class GraphicsTkinter(Graphics):
 
 class CanvasTkinter(Canvas):
 
-    def __init__(self, root):
+    def __init__(self, graphics, root):
         super().__init__()
 
+        self._graphics = graphics
         self._root = root
         self._root.canvas = tkinter.Canvas(
             master=self._root,
@@ -103,9 +115,9 @@ class CanvasTkinter(Canvas):
     def set_title(self, title):
         self._root.title(title)
 
-    def set_icon(self, image):
+    def set_icon_path(self, path):
         if os_name == 'nt':
-            self._root.iconbitmap(bitmap=image)
+            self._root.iconbitmap(bitmap=path)
 
     def set_size(self, size):
         self._root.canvas.config(width=size.x, height=size.y)
@@ -140,21 +152,21 @@ class CanvasTkinter(Canvas):
 
 class Interface:
 
-    default_size = Vector(44, 31)
-
     def __init__(self, services, graphics: Graphics):
-        self._services = services
+        self._event_dispatcher = services[EventDispatcher]
+        self._resources = services[ResourceManager]
+        self._config = services[Config]
         self._graphics = graphics
 
         self._canvas = self._graphics.create_canvas()
-        app_name = self._services.config['interface']['app_name']
-        version = self._services.config['interface']['version']
+        app_name = self._config['interface']['app_name']
+        version = self._config['interface']['version']
         self._canvas.set_title(app_name + ' v' + str(version))
         self._canvas.set_is_resizable(False)
-        self._canvas.set_icon(self._services.resources.get_icon())
+        self._canvas.set_icon_path(self._resources.get_icon_path())
         self._canvas.set_background_color('#262626')
 
-        self._graphics.set_update_delay(int(1000 / self._services.config['view']['fps']))
+        self._graphics.set_update_delay(int(1000 / self._config['view']['fps']))
         self._graphics.subscribe_on_update(self._on_update)
         self.tick_count = 0
 
@@ -162,9 +174,9 @@ class Interface:
         stopwatch = Stopwatch()
         with stopwatch:
             for _ in range(8):
-                self._services.event_dispatcher.fire(EventId.TICK, self, time=self.tick_count)
+                self._event_dispatcher.fire(EventId.TICK, self, time=self.tick_count)
                 self.tick_count += 1
-            self._services.event_dispatcher.fire(EventId.REDRAW, self)
+            self._event_dispatcher.fire(EventId.REDRAW, self)
         print(self.tick_count // 8)
         # if stopwatch.result_ms > 0:
             # print(1000 / stopwatch.result_ms)
