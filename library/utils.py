@@ -1,6 +1,7 @@
+from typing import Optional
 
 
-class DataClass:
+class DataClass:  # TODO: This is deprecated
     def __eq__(self, other):
         if other is None or not isinstance(other, type(self)):
             return False
@@ -38,7 +39,7 @@ class classproperty:
         return self._getter(cls)
 
 
-def not_none_or_default(value, default):
+def value_or_default(value, default):
     if value is not None:
         return value
     return default

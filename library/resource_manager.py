@@ -13,7 +13,7 @@ except ModuleNotFoundError:
 from PIL import Image, ImageTk
 
 from library.exceptions import ResourceLoadingError
-from library.geometry import Vector, Direction
+from library.geometry import Vector2, Direction
 from library.graphics import Animation, Sprite
 from library.model.field import Block, Grid
 
@@ -244,7 +244,7 @@ class ResourceManager:
 
     def get_grid(self, grid_name):
         data = self._grids[grid_name]
-        size = Vector(len(data[0]), len(data))
+        size = Vector2(len(data[0]), len(data))
         grid = Grid({}, size)
         for i, line in enumerate(data):
             for j, char in enumerate(line):
@@ -259,7 +259,7 @@ class ResourceManager:
                     except:
                         pass
                     connections[direction] = connection
-                cell = Vector(j, i)
+                cell = Vector2(j, i)
                 grid[cell] = Block(cell, block_info[0], connections)
                 if block_info[1]:
                     grid.anchors[block_info[1]] = cell

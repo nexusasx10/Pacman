@@ -1,7 +1,7 @@
 from enum import Enum
 
 from library.config import Config
-from library.event import EventId, EventDispatcher
+from library.events import EventId, EventDispatcher
 
 
 class Control(Enum):

@@ -1,13 +1,13 @@
 import itertools
 from enum import Enum
 
-from library.event import EventId, EventDispatcher
-from library.geometry import Direction, Vector
+from library.events import EventId, EventDispatcher
+from library.geometry import Direction, Vector2
 
 
 class Block:
 
-    size = Vector(1, 1)
+    size = Vector2(1, 1)
 
     class Content(Enum):
         EMPTY = 0
@@ -62,16 +62,16 @@ class Field:
         self._build_graph()
 
     def _build_graph(self):
-        self.enemy_graph.add_node(self.grid.anchors['enemies'].shift(2, 2))
-        self.enemy_graph.add_node(self.grid.anchors['enemies'].shift(2, 2.5))
-        self.enemy_graph.add_node(self.grid.anchors['enemies'].shift(2, 3))
-        self.enemy_graph.add_node(self.grid.anchors['enemies'].shift(4, 2))
-        self.enemy_graph.add_node(self.grid.anchors['enemies'].shift(4, 2.5))
-        self.enemy_graph.add_node(self.grid.anchors['enemies'].shift(4, 3))
-        self.enemy_graph.add_node(self.grid.anchors['enemies'].shift(6, 2))
-        self.enemy_graph.add_node(self.grid.anchors['enemies'].shift(6, 2.5))
-        self.enemy_graph.add_node(self.grid.anchors['enemies'].shift(6, 3))
-        self.enemy_graph.add_node(self.grid.anchors['enemies'].shift(4, -0.5))
+        self.enemy_graph.add_node(self.grid.anchors['enemies'].move(2, 2))
+        self.enemy_graph.add_node(self.grid.anchors['enemies'].move(2, 2.5))
+        self.enemy_graph.add_node(self.grid.anchors['enemies'].move(2, 3))
+        self.enemy_graph.add_node(self.grid.anchors['enemies'].move(4, 2))
+        self.enemy_graph.add_node(self.grid.anchors['enemies'].move(4, 2.5))
+        self.enemy_graph.add_node(self.grid.anchors['enemies'].move(4, 3))
+        self.enemy_graph.add_node(self.grid.anchors['enemies'].move(6, 2))
+        self.enemy_graph.add_node(self.grid.anchors['enemies'].move(6, 2.5))
+        self.enemy_graph.add_node(self.grid.anchors['enemies'].move(6, 3))
+        self.enemy_graph.add_node(self.grid.anchors['enemies'].move(4, -0.5))
 
         self.enemy_graph.exit[0] = Direction.SOUTH
         self.enemy_graph.exit[1] = Direction.EAST
@@ -112,7 +112,7 @@ class Field:
                     {Direction.EAST, Direction.WEST}
             ):
                 # todo повысить погрешность и выравнивать положение
-                if actor.position.distance(actor.cell.shift(0.5, 0.5)) < 0.15:
+                if actor.position.distance(actor.cell.move(0.5, 0.5)) < 0.15:
                     self._services[EventDispatcher].fire(EventId.CROSSWAY, self, actor=actor)
 
     def _notify_pickups(self):
@@ -128,6 +128,6 @@ class Field:
             if actor.position.distance(actor.dead_target) < 0.15:
                 self._services[EventDispatcher].fire(EventId.GHOST_ON_DEAD_TARGET, self, name=actor.name)
             if actor.position.distance(
-                    self.grid.anchors['enemies'].shift(4, -0.5)
+                    self.grid.anchors['enemies'].move(4, -0.5)
             ) < 0.15:
                 self._services[EventDispatcher].fire(EventId.GHOST_BEHIND_DOOR, self, name=actor.name)

@@ -8,7 +8,7 @@ from library.utils import Services
 from library.view.debug_view import DebugView
 from library.view.sound_engine import SoundEngine
 from library.controller import Controller
-from library.event import EventDispatcher
+from library.events import EventDispatcher
 from library.interface import Interface, GraphicsTkinter, Graphics
 from library.model.game_driver import GameDriver
 from library.resource_manager import ResourceManager

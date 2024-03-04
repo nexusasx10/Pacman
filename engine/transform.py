@@ -1,17 +1,15 @@
 from math import cos, sin
 
 from engine.components import Component
-from library.geometry import Vector
-from library.utils import not_none_or_default
+from library.geometry import Vector2
+from library.utils import value_or_default
 
 
-class Transform(Component):
+class Transform2:
 
-    def __init__(self, owner, parent=None, position=None, rotation=None):
-        super().__init__(owner)
-
-        self.position = not_none_or_default(position, Vector.zero())
-        self.rotation = not_none_or_default(rotation, 0)
+    def __init__(self, parent=None, position=None, rotation=None):
+        self.position = value_or_default(position, Vector2.zero())
+        self.rotation = value_or_default(rotation, 0)
         self.parent = parent
         self.children = []
 
@@ -33,3 +31,10 @@ class Transform(Component):
     def remove_child(self, child):
         self.children.remove(child)
         child.parent = None
+
+
+class Transform2Component(Component):
+
+    def __init__(self, owner):
+        super().__init__(owner)
+        self.transform = Transform2()

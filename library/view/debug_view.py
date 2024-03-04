@@ -1,4 +1,4 @@
-from library.event import EventId, EventDispatcher
+from library.events import EventId, EventDispatcher
 from library.model.actor import Enemy
 from library.model.field import Block
 from library.model.game_driver import GameDriver

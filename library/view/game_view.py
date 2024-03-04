@@ -1,8 +1,8 @@
 from collections import deque
 
 from library.config import Config
-from library.event import EventId, EventDispatcher
-from library.geometry import Vector, Direction
+from library.events import EventId, EventDispatcher
+from library.geometry import Vector2, Direction
 from library.graphics import AnimationDrawer
 from library.interface import Graphics
 from library.model.actor import Pacman, Enemy, Actor
@@ -29,9 +29,9 @@ class TextDrawer:
 
     def draw(self, position, text, align=Align.CENTER):
         if align == self.Align.RIGHT:
-            position = position.shift(-len(text), 0)
+            position = position.move(-len(text), 0)
         elif align == self.Align.CENTER:
-            position = position.shift(-len(text) / 2, 0)
+            position = position.move(-len(text) / 2, 0)
         self.clear()
         for i, char in enumerate(text):
             if char == ' ':
@@ -40,7 +40,7 @@ class TextDrawer:
             self._drawers.append(drawer)
             animation_name = f'char/{char}'
             animation = self._services[ResourceManager].get_animation(animation_name)
-            drawer.draw(position.shift(i, 0) + self._offset, self._sprite, animation)
+            drawer.draw(position.move(i, 0) + self._offset, self._sprite, animation)
 
     def clear(self):
         while self._drawers:
@@ -50,13 +50,15 @@ class TextDrawer:
 
 class ActorDrawer:
 
+    _offset = -Actor.size / 2
+
     def __init__(self, graphics, canvas, sprite):
         self._animation_drawer = AnimationDrawer(graphics, canvas)
         self._sprite = sprite
 
     def draw(self, actor, animation):
         self._animation_drawer.draw(
-            actor.position - Actor.size / 2,
+            actor.position + self._offset,
             self._sprite,
             animation
         )
@@ -118,7 +120,7 @@ class EnemyDrawer:
 
 class BlockDrawer:
 
-    _offset = Block.size / 2
+    _offset = -Block.size / 2
 
     def __init__(self, services, canvas):
         self._resources = services[ResourceManager]
@@ -158,8 +160,8 @@ class BlockDrawer:
             if block.cell.x == e_point.x + 7:
                 return 6
         if list(block.connections.values()).count(True) == 0:
-            up = field.grid[block.cell.shift(0, -1)]
-            down = field.grid[block.cell.shift(0, 1)]
+            up = field.grid[block.cell.move(0, -1)]
+            down = field.grid[block.cell.move(0, 1)]
             if up.connections[Direction.WEST]:
                 return 13
             elif up.connections[Direction.EAST]:
@@ -239,12 +241,12 @@ class BackgroundDrawer:
                     else:
                         animation_name += 'empty'
                 animation = self._resources.get_animation(animation_name)
-                self._get_drawer(i, j).draw(position.shift(i, j) + self._offset, self._sprite, animation)
+                self._get_drawer(i, j).draw(position.move(i, j) + self._offset, self._sprite, animation)
 
 
 class MenuDrawer:
 
-    _offset = Vector(-8, -8)
+    _offset = Vector2(-8, -8)
 
     def __init__(self, services, canvas):
         self._services = services
@@ -258,7 +260,7 @@ class MenuDrawer:
         world_size = model.get_size()
         screen_size = self._graphics.world_space_to_screen_space(world_size)
         self._canvas.set_size(screen_size)
-        self._background_drawer.draw(Vector.zero(), world_size)
+        self._background_drawer.draw(Vector2.zero(), world_size)
 
     def _draw_content(self, model, content):
         while self._content_drawers:
@@ -269,7 +271,7 @@ class MenuDrawer:
             y = (model.get_size().y - len(content)) / 2 + i
             drawer = TextDrawer(self._services, self._canvas)
             self._content_drawers.append(drawer)
-            drawer.draw(Vector(x, y), line)
+            drawer.draw(Vector2(x, y), line)
 
     def _draw_page(self, model, menu, prev_content):
         for i, (caption, _, _, _) in enumerate(menu.current_page.items):
@@ -305,7 +307,7 @@ class MenuDrawer:
             return
         x = model.get_size().x / 2
         y = model.get_size().y / 4
-        self._title_drawer.draw(Vector(x, y), model.menu.current_page.title)
+        self._title_drawer.draw(Vector2(x, y), model.menu.current_page.title)
         if model.menu.current_page is RatingsItem:
             self._draw_ratings(model, model.menu, [])
         elif model.menu.current_page is RecordItem:
@@ -365,7 +367,7 @@ class GameDrawer:
         self._canvas.set_size(model.get_size() * 16)
         for x in range(model.field.grid.size.x):
             for y in range(model.field.grid.size.y):
-                self._block_drawers[Vector(x, y)] = BlockDrawer(
+                self._block_drawers[Vector2(x, y)] = BlockDrawer(
                     self._services,
                     self._canvas
                 )
@@ -380,17 +382,17 @@ class GameDrawer:
         for actor in model.field.actors.values():
             self._actor_drawers[actor.name].draw(actor)
         self._level_drawers.draw(
-            Vector(model.field.grid.size.x + 1, 1),
+            Vector2(model.field.grid.size.x + 1, 1),
             f'level: {model.level}',
             TextDrawer.Align.LEFT
         )
         self._scores_drawers.draw(
-            Vector(model.field.grid.size.x + 1, 3),
+            Vector2(model.field.grid.size.x + 1, 3),
             f'scores: {model.scores}',
             TextDrawer.Align.LEFT
         )
         self._lives_drawers.draw(
-            Vector(model.field.grid.size.x + 1, 5),
+            Vector2(model.field.grid.size.x + 1, 5),
             f'lives: {model.lives}',
             TextDrawer.Align.LEFT
         )
@@ -411,7 +413,7 @@ class CaptionDrawer:
         elif model.mode == GameDriver.Mode.LOSE:
             text = 'you lose...'
 
-        self._background_drawer.draw(Vector.zero(), model.get_size())
+        self._background_drawer.draw(Vector2.zero(), model.get_size())
         self._text_drawer.draw(model.get_size() / 2, text)
 
 

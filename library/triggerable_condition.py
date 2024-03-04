@@ -1,8 +1,10 @@
+from abc import ABC, abstractmethod
+
 from library.delegate import Delegate
 from library.utils import try_call
 
 
-class TriggerableCondition:
+class TriggerableCondition(ABC):
 
     def __init__(self):
         self.on_update = Delegate()
@@ -15,11 +17,13 @@ class TriggerableCondition:
     def subscribe(self):
         self._update()
 
+    @abstractmethod
     def unsubscribe(self):
         pass
 
+    @abstractmethod
     def _is_passed_now(self):
-        return None
+        pass
 
     def _set_is_passed(self, value):
         self._is_passed = value

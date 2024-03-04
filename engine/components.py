@@ -3,7 +3,7 @@
 class ComponentContainer:
 
     def __init__(self):
-        self._components = dict()
+        self._components = {}
 
     def add_component(self, component_type: type):
         # todo а если несколько компонентов с наследующимися типами?

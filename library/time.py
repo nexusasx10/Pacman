@@ -1,11 +1,11 @@
 import time
 from collections import defaultdict, deque
 
-from library.event import EventId, EventDispatcher
+from library.events import EventId, EventDispatcher
 
 
 class Stopwatch:
-    """Замеряет время выполнения блока кода."""
+
     def __init__(self):
         self.result_ms = None
         self.start_time = None

@@ -2,7 +2,7 @@ import time
 from collections import defaultdict, deque
 
 from engine.events import MultiDelegate
-from library.event import EventDispatcher, EventId
+from library.events import EventDispatcher, EventId
 
 sec_to_ms = 1000
 ms_to_sec = 0.001

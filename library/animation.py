@@ -1,4 +1,4 @@
-from library.geometry import Vector
+from library.geometry import Vector2
 from library.fsm import Fsm
 
 
@@ -14,16 +14,16 @@ class AnimationTrack:
     def __init__(self, attribute_path, params):
         self.attribute_path = attribute_path
         self.key_frames = [
-            AnimationKeyFrame(0, Vector(0, 0)),
-            AnimationKeyFrame(1, Vector(1, 1)),
-            AnimationKeyFrame(2, Vector(0, 1))
+            AnimationKeyFrame(0, Vector2(0, 0)),
+            AnimationKeyFrame(1, Vector2(1, 1)),
+            AnimationKeyFrame(2, Vector2(0, 1))
         ]
         self.params = params
 
     def update(self, time, obj):
         obj[self.attribute_path] = self.evaluate(time)
 
-# TODO: Оптимизировать взятие значения по времени
+# TODO: Оптимизировать взятие значения по времени (хотя на наших данных эта оптимизация ничего не даст)
     def evaluate(self, time):
         curr_frame = None
 

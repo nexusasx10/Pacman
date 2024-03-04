@@ -1,4 +1,4 @@
-from library.event import EventId
+from library.events import EventId
 
 
 class StateDriver:

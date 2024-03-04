@@ -5,11 +5,11 @@ import datetime
 
 from library.config import Config
 from library.controller import Control
-from library.event import EventId, EventDispatcher
+from library.events import EventId, EventDispatcher
 from library.model.actor import Pacman, RedGhost, PinkGhost, BlueGhost, \
     OrangeGhost, Enemy
 from library.model.field import Field, Block
-from library.geometry import Direction, Vector
+from library.geometry import Direction, Vector2
 from library.model.menu import Menu, PageItem, RatingsItem, RecordItem, SaveItem, \
     LoadItem
 from library.resource_manager import ResourceManager
@@ -194,9 +194,9 @@ class GameDriver:
     def get_size(self):
         match self.mode:
             case self.Mode.PLAY:
-                return self.field.grid.size + Vector(16, 0)
+                return self.field.grid.size + Vector2(16, 0)
             case _:
-                return Vector(
+                return Vector2(
                     self._config['model']['default_width'],
                     self._config['model']['default_height']
                 )
@@ -216,31 +216,31 @@ class GameDriver:
             enemy_start_mode = Enemy.Mode.CHASE
         self.field.spawn_actor(
             Pacman,
-            self.field.grid.anchors['pacman'].shift(1, 0.5),
+            self.field.grid.anchors['pacman'].move(1, 0.5),
             Direction.WEST,
             (Pacman.Mode.NONE, Pacman.Mode.WALKING)
         )
         self.field.spawn_actor(
             RedGhost,
-            self.field.grid.anchors['enemies'].shift(4, -0.5),
+            self.field.grid.anchors['enemies'].move(4, -0.5),
             Direction.WEST,
             (Enemy.Mode.NONE, enemy_start_mode, Enemy.Mode.NONE)
         )
         self.field.spawn_actor(
             PinkGhost,
-            self.field.grid.anchors['enemies'].shift(4, 2.5),
+            self.field.grid.anchors['enemies'].move(4, 2.5),
             Direction.NORTH,
             (Enemy.Mode.NONE, enemy_start_mode, Enemy.Mode.HOME)
         )
         self.field.spawn_actor(
             BlueGhost,
-            self.field.grid.anchors['enemies'].shift(2, 2.5),
+            self.field.grid.anchors['enemies'].move(2, 2.5),
             Direction.SOUTH,
             (Enemy.Mode.NONE, enemy_start_mode, Enemy.Mode.HOME)
         )
         self.field.spawn_actor(
             OrangeGhost,
-            self.field.grid.anchors['enemies'].shift(6, 2.5),
+            self.field.grid.anchors['enemies'].move(6, 2.5),
             Direction.SOUTH,
             (Enemy.Mode.NONE, enemy_start_mode, Enemy.Mode.HOME)
         )
@@ -264,13 +264,13 @@ class GameDriver:
         self._dots = save['game']['dots']
         self._scheduler.load(save['scheduler'])
         for cell in save['blocks']:
-            cell_p = Vector(*map(int, cell.split(',')))
+            cell_p = Vector2(*map(int, cell.split(',')))
             self.field.grid[cell_p].content = Block.Content[
                 save['blocks'][cell]
             ]
         self.field.spawn_actor(
             Pacman,
-            Vector(*map(float, save['pacman']['position'].split(','))),
+            Vector2(*map(float, save['pacman']['position'].split(','))),
             Direction[save['pacman']['direction']],
             (
                 Pacman.Mode[save['pacman']['mode1']],
@@ -278,12 +278,12 @@ class GameDriver:
             )
         )
         if save['pacman']['last_turn'] != 'None':
-            self.field.actors['pacman'].last_turn = Vector(
+            self.field.actors['pacman'].last_turn = Vector2(
                 *map(float, save['pacman']['last_turn'].split(','))
             )
         self.field.spawn_actor(
             RedGhost,
-            Vector(*map(float, save['red_ghost']['position'].split(','))),
+            Vector2(*map(float, save['red_ghost']['position'].split(','))),
             Direction[save['red_ghost']['direction']],
             (
                 Enemy.Mode[save['red_ghost']['mode1']],
@@ -292,7 +292,7 @@ class GameDriver:
             )
         )
         if save['red_ghost']['last_turn'] != 'None':
-            self.field.actors['red_ghost'].last_turn = Vector(
+            self.field.actors['red_ghost'].last_turn = Vector2(
                 *map(float, save['red_ghost']['last_turn'].split(','))
             )
         if save['red_ghost']['last_node'] != 'None':
@@ -301,7 +301,7 @@ class GameDriver:
             ]
         self.field.spawn_actor(
             PinkGhost,
-            Vector(*map(float, save['pink_ghost']['position'].split(','))),
+            Vector2(*map(float, save['pink_ghost']['position'].split(','))),
             Direction[save['pink_ghost']['direction']],
             (
                 Enemy.Mode[save['pink_ghost']['mode1']],
@@ -310,7 +310,7 @@ class GameDriver:
             )
         )
         if save['pink_ghost']['last_turn'] != 'None':
-            self.field.actors['pink_ghost'].last_turn = Vector(
+            self.field.actors['pink_ghost'].last_turn = Vector2(
                 *map(float, save['pink_ghost']['last_turn'].split(','))
             )
         if save['pink_ghost']['last_node'] != 'None':
@@ -319,7 +319,7 @@ class GameDriver:
             ]
         self.field.spawn_actor(
             BlueGhost,
-            Vector(*map(float, save['blue_ghost']['position'].split(','))),
+            Vector2(*map(float, save['blue_ghost']['position'].split(','))),
             Direction[save['blue_ghost']['direction']],
             (
                 Enemy.Mode[save['blue_ghost']['mode1']],
@@ -328,7 +328,7 @@ class GameDriver:
             )
         )
         if save['blue_ghost']['last_turn'] != 'None':
-            self.field.actors['blue_ghost'].last_turn = Vector(
+            self.field.actors['blue_ghost'].last_turn = Vector2(
                 *map(float, save['blue_ghost']['last_turn'].split(','))
             )
         if save['blue_ghost']['last_node'] != 'None':
@@ -337,7 +337,7 @@ class GameDriver:
             ]
         self.field.spawn_actor(
             OrangeGhost,
-            Vector(*map(float, save['orange_ghost']['position'].split(','))),
+            Vector2(*map(float, save['orange_ghost']['position'].split(','))),
             Direction[save['orange_ghost']['direction']],
             (
                 Enemy.Mode[save['orange_ghost']['mode1']],
@@ -346,7 +346,7 @@ class GameDriver:
             )
         )
         if save['orange_ghost']['last_turn'] != 'None':
-            self.field.actors['orange_ghost'].last_turn = Vector(
+            self.field.actors['orange_ghost'].last_turn = Vector2(
                 *map(float, save['orange_ghost']['last_turn'].split(','))
             )
         if save['orange_ghost']['last_node'] != 'None':
@@ -446,31 +446,31 @@ class GameDriver:
             enemy_start_mode = Enemy.Mode.CHASE
         self.field.spawn_actor(
             Pacman,
-            self.field.grid.anchors['pacman'].shift(1, 0.5),
+            self.field.grid.anchors['pacman'].move(1, 0.5),
             Direction.WEST,
             (Pacman.Mode.NONE, Pacman.Mode.WALKING)
         )
         self.field.spawn_actor(
             RedGhost,
-            self.field.grid.anchors['enemies'].shift(4, -0.5),
+            self.field.grid.anchors['enemies'].move(4, -0.5),
             Direction.WEST,
             (Enemy.Mode.NONE, enemy_start_mode, Enemy.Mode.NONE)
         )
         self.field.spawn_actor(
             PinkGhost,
-            self.field.grid.anchors['enemies'].shift(4, 2.5),
+            self.field.grid.anchors['enemies'].move(4, 2.5),
             Direction.NORTH,
             (Enemy.Mode.NONE, enemy_start_mode, Enemy.Mode.HOME)
         )
         self.field.spawn_actor(
             BlueGhost,
-            self.field.grid.anchors['enemies'].shift(2, 2.5),
+            self.field.grid.anchors['enemies'].move(2, 2.5),
             Direction.SOUTH,
             (Enemy.Mode.NONE, enemy_start_mode, Enemy.Mode.HOME)
         )
         self.field.spawn_actor(
             OrangeGhost,
-            self.field.grid.anchors['enemies'].shift(6, 2.5),
+            self.field.grid.anchors['enemies'].move(6, 2.5),
             Direction.SOUTH,
             (Enemy.Mode.NONE, enemy_start_mode, Enemy.Mode.HOME)
         )

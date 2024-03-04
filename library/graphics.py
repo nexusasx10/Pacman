@@ -1,6 +1,3 @@
-import copy
-
-from library.model.field import Block
 
 
 class Sprite:

@@ -1,5 +1,5 @@
 from engine.actor import Actor
-from engine.transform import Transform2d
+from engine.transform import Transform2
 
 
 class Scene:
@@ -11,7 +11,7 @@ class Scene:
         actor = Actor(name)
 
         if add_transform:
-            transform = actor.add_component(Transform2d)
+            transform = actor.add_component(Transform2)
             if parent is None:
                 self.actors.append(actor)
             else:

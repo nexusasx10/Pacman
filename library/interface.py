@@ -4,8 +4,7 @@ import tkinter
 from os import name as os_name
 
 from library.config import Config
-from library.event import EventId, EventDispatcher
-from library.geometry import Vector
+from library.events import EventId, EventDispatcher
 from library.resource_manager import ResourceManager
 from library.time import Stopwatch
 
@@ -33,9 +32,7 @@ class Canvas:
 
 class Graphics:
 
-    def __init__(self, services):
-        self._services = services
-
+    def __init__(self):
         self._redraw_delay = 0
         self.tick_count = 0
         self._update_callback = None
@@ -65,22 +62,25 @@ class Graphics:
 class GraphicsTkinter(Graphics):
 
     def __init__(self, services):
-        super().__init__(services)
+        super().__init__()
+
+        self._event_dispatcher = services[EventDispatcher]
+        self._config = services[Config]
 
         self._root = None
 
     def world_space_to_screen_space(self, position):
-        return position * self._services[Config]['view']['px_per_unit']
+        return position * self._config['view']['px_per_unit']
 
     def screen_space_to_world_space(self, position):
-        return position / self._services[Config]['view']['px_per_unit']
+        return position / self._config['view']['px_per_unit']
 
     def create_canvas(self):
         self._root = tkinter.Tk()
         return CanvasTkinter(self, self._root)
 
     def run(self):
-        self._services[EventDispatcher].subscribe(EventId.DESTROY, self._on_destroy)
+        self._event_dispatcher.subscribe(EventId.DESTROY, self._on_destroy)
         self._root.after(self._redraw_delay, self._update)
 
         try:

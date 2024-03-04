@@ -7,8 +7,8 @@ from enum import Enum
 
 from library.config import Config
 from library.controller import Control
-from library.event import EventId, EventDispatcher
-from library.geometry import Vector, Direction
+from library.events import EventId, EventDispatcher
+from library.geometry import Vector2, Direction
 from library.model.field import Block
 from library.model.state_driver import StateDriver
 
@@ -16,7 +16,7 @@ from library.model.state_driver import StateDriver
 class Actor(ABC):
 
     speeds = None
-    size = Vector(2, 2)
+    size = Vector2(2, 2)
 
     def __init__(self, services, name, position, direction, field):
         self._services = services
@@ -47,7 +47,7 @@ class Actor(ABC):
 
     @property
     def cell(self):
-        return Vector(
+        return Vector2(
             math.floor(self.position.x),
             math.floor(self.position.y)
         )
@@ -61,11 +61,11 @@ class Actor(ABC):
         self.position.y %= self._weak_field().grid.size.y
 
     def update(self):
-        if self.position.distance(self.cell.shift(0.5, 0.5)) < 0.06:
+        if self.position.distance(self.cell.move(0.5, 0.5)) < 0.06:
             if not self._field.grid[self.cell].connections[self.direction]:
                 return
         dx, dy = map(lambda n: self.speed * n, self.direction.get_offset())
-        self.position.move(dx, dy)
+        self.position = self.position.move(dx, dy)
         self.correct_position()
 
 
@@ -167,7 +167,7 @@ class Pacman(Actor):
         if event_args.actor == self:
             self.turn()
             if self.last_turn != self.cell:
-                self.position = self.cell.shift(0.5, 0.5)
+                self.position = self.cell.move(0.5, 0.5)
                 self.last_turn = self.cell
 
     def turn(self):
@@ -268,7 +268,7 @@ class Enemy(Actor):
 
     @property
     def dead_target(self):
-        return self._field.grid.anchors['enemies'].shift(4, -0.5)
+        return self._field.grid.anchors['enemies'].move(4, -0.5)
 
     @property
     def mode(self):
@@ -296,7 +296,7 @@ class Enemy(Actor):
             if current_node is not None and current_node != self.last_node:
                 self.direction = self._field.enemy_graph.exit[current_node]
                 new_position = self._field.enemy_graph.nodes[current_node]
-                self.position = Vector(new_position.x, new_position.y)
+                self.position = Vector2(new_position.x, new_position.y)
                 self.last_node = current_node
         super().update()
 
@@ -313,14 +313,14 @@ class Enemy(Actor):
             elif self.mode[1] == self.Mode.CHASE:
                 return self.chase_target
             else:
-                return Vector(
+                return Vector2(
                     random.randint(0, self._weak_field().grid.size.x),
                     random.randint(0, self._weak_field().grid.size.y)
                 )
         elif self.mode[0] == self.Mode.DEAD:
             return self.dead_target
         else:
-            return Vector(
+            return Vector2(
                 random.randint(0, self._weak_field().grid.size.x),
                 random.randint(0, self._weak_field().grid.size.y)
             )
@@ -342,7 +342,7 @@ class Enemy(Actor):
                     current_block.connections
                 ),
                 key=lambda d: self._field.grid[
-                    self.cell.shift(*d.get_offset())
+                    self.cell.move(*d.get_offset())
                 ].cell.distance(self.get_target())
             )[0]
 
@@ -358,7 +358,7 @@ class RedGhost(Enemy):
             services, 'red_ghost', position, direction, mode, field
         )
 
-    scatter_target = Vector(26, 0)
+    scatter_target = Vector2(26, 0)
 
     @property
     def chase_target(self):
@@ -377,11 +377,11 @@ class PinkGhost(Enemy):
             self.Mode.EXIT
         )
 
-    scatter_target = Vector(1, 0)
+    scatter_target = Vector2(1, 0)
 
     @property
     def chase_target(self):
-        return copy.deepcopy(self._field.actors['pacman'].position).move(
+        return self._field.actors['pacman'].position.move(
             *map(
                 lambda n: 4 * n,
                 self._field.actors['pacman'].direction.get_offset()
@@ -401,20 +401,17 @@ class BlueGhost(Enemy):
             self.Mode.EXIT
         )
 
-    scatter_target = Vector(26, 30)
+    scatter_target = Vector2(26, 30)
 
     @property
     def chase_target(self):
-        target = copy.deepcopy(self._field.actors['pacman'].position).move(
+        target = self._field.actors['pacman'].position.move(
             *map(
                 lambda n: 2 * n,
                 self._field.actors['pacman'].direction.get_offset()
             )
         )
-        assistant = copy.deepcopy(self._field.actors['red_ghost'].position)
-        assistant.move(-target.x, -target.y)
-        assistant = Vector(-assistant.x, -assistant.y)
-        assistant.move(target.x, target.y)
+        assistant = -self._field.actors['red_ghost'].position + target * 2
         return assistant
 
 
@@ -430,7 +427,7 @@ class OrangeGhost(Enemy):
             self.Mode.EXIT
         )
 
-    scatter_target = Vector(1, 30)
+    scatter_target = Vector2(1, 30)
 
     @property
     def chase_target(self):
