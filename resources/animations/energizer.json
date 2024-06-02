@@ -1,0 +1,35 @@
+{
+    "states": [
+        {
+            "name": "default",
+            "tracks": [
+                {
+                    "attribute_path": "sprite_idx",
+                    "key_frames": [
+                        { "time": 0, "value": 7, "type": "AnimationKeyFrame" },
+                        { "time": 1.2, "value": 8, "type": "AnimationKeyFrame" },
+                        { "time": 1.26, "value": 9, "type": "AnimationKeyFrame" },
+                        { "time": 1.32, "value": 10, "type": "AnimationKeyFrame" },
+                        { "time": 1.38, "value": 11, "type": "AnimationKeyFrame" },
+                        { "time": 1.44, "value": 12, "type": "AnimationKeyFrame" },
+                        { "time": 1.5, "value": 13, "type": "AnimationKeyFrame" },
+                        { "time": 1.56, "value": 14, "type": "AnimationKeyFrame" }
+                    ],
+                    "params": {
+                        "is_interpolated": false
+                    },
+                    "type": "AnimationTrack"
+                }
+            ],
+            "params": {
+                "is_looped": true,
+                "duration": 1.62,
+                "type": "AnimationStateParams"
+            },
+            "type": "AnimationState"
+        }
+    ],
+    "initial_state": "default",
+    "transitions": [],
+    "type": "Animation"
+}

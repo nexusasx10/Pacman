@@ -1,0 +1,98 @@
+{
+    "states": [
+        {
+            "name": "walking",
+            "tracks": [
+                {
+                    "attribute_path": "sprite_idx",
+                    "key_frames": [
+                        { "time": 0, "value": 0, "type": "AnimationKeyFrame" },
+                        { "time": 0.24, "value": 1, "type": "AnimationKeyFrame" }
+                    ],
+                    "params": {
+                        "is_interpolated": false
+                    },
+                    "type": "AnimationTrack"
+                }
+            ],
+            "params": {
+                "is_looped": true,
+                "duration": 0.48,
+                "type": "AnimationStateParams"
+            },
+            "type": "AnimationState"
+        },
+        {
+            "name": "frightened",
+            "tracks": [
+                {
+                    "attribute_path": "sprite_idx",
+                    "key_frames": [
+                        { "time": 0, "value": 9, "type": "AnimationKeyFrame" },
+                        { "time": 0.24, "value": 10, "type": "AnimationKeyFrame" }
+                    ],
+                    "params": {
+                        "is_interpolated": false
+                    },
+                    "type": "AnimationTrack"
+                }
+            ],
+            "params": {
+                "is_looped": true,
+                "duration": 0.48,
+                "type": "AnimationStateParams"
+            },
+            "type": "AnimationState"
+        },
+        {
+            "name": "frightened_end",
+            "tracks": [
+                {
+                    "attribute_path": "sprite_idx",
+                    "key_frames": [
+                        { "time": 0, "value": 11, "type": "AnimationKeyFrame" },
+                        { "time": 0.24, "value": 12, "type": "AnimationKeyFrame" },
+                        { "time": 0.48, "value": 9, "type": "AnimationKeyFrame" },
+                        { "time": 0.72, "value": 10, "type": "AnimationKeyFrame" }
+                    ],
+                    "params": {
+                        "is_interpolated": false
+                    },
+                    "type": "AnimationTrack"
+                }
+            ],
+            "params": {
+                "is_looped": true,
+                "duration": 0.96,
+                "type": "AnimationStateParams"
+            },
+            "type": "AnimationState"
+        },
+        {
+            "name": "dead",
+            "tracks": [
+                {
+                    "attribute_path": "sprite_idx",
+                    "key_frames": [
+                        { "time": 0, "value": 8, "type": "AnimationKeyFrame" }
+                    ],
+                    "params": {
+                        "is_interpolated": false
+                    },
+                    "type": "AnimationTrack"
+                }
+            ],
+            "params": {
+                "is_looped": true,
+                "duration": 0.06,
+                "type": "AnimationStateParams"
+            },
+            "type": "AnimationState"
+        }
+    ],
+    "initial_state": "walking",
+    "transitions": [
+
+    ],
+    "type": "Animation"
+}

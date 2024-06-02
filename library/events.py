@@ -1,4 +1,4 @@
-from collections import defaultdict, deque
+from collections import defaultdict
 from enum import Enum
 
 
@@ -34,7 +34,7 @@ class EventId(Enum):
     STOP = 2
     DESTROY = 3
     MODEL_UPDATE = 4
-    GAME_INIT = 21
+    GAME_INIT = 21  # todo: Reorder
     GAME_START = 5
     GAME_RESTART = 6
     GAME_END = 7

@@ -6,6 +6,8 @@ from library.utils import value_or_default
 
 class Vector2:
 
+    __slots__ = ['x', 'y']
+
     def __init__(self, x, y):
         self.x = x
         self.y = y
@@ -37,6 +39,9 @@ class Vector2:
     def __neg__(self):
         return type(self)(-self.x, -self.y)
 
+    def __iter__(self):
+        return iter((self.x, self.y))
+
     def distance(self, other):
         return ((self.x - other.x) ** 2 + (self.y - other.y) ** 2) ** 0.5
 
@@ -58,9 +63,9 @@ class Vector2:
             value_or_default(y, self.y)
         )
 
-    @staticmethod
-    def zero():
-        return Vector2(0, 0)
+    @classmethod
+    def zero(cls):
+        return cls(0, 0)
 
 
 class Direction(Enum):
@@ -69,14 +74,14 @@ class Direction(Enum):
     WEST = 180
     SOUTH = 270
 
-    def is_oppositely(self, other):
-        return abs(self.value - other.value) == 180
+    def is_oppositely(self, other, epsilon=0.001):
+        return abs(abs(self.value - other.value) - 180) < epsilon
 
     def get_oppositely(self):
         return Direction((self.value + 180) % 360)
 
-    def get_offset(self):  # TODO: rename to to_vector()
-        return (
+    def to_vector(self):
+        return Vector2(
             int(math.cos(math.radians(self.value))),
             int(-math.sin(math.radians(self.value)))
         )

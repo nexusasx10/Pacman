@@ -3,13 +3,13 @@ import logging
 import sys
 from argparse import ArgumentParser
 
-from library.config import Config
-from library.utils import Services
+from engine.typemap import TypeMap
+from library.config import AbstractConfig, ConfigJson
 from library.view.debug_view import DebugView
 from library.view.sound_engine import SoundEngine
-from library.controller import Controller
+from library.controller import InputSourceTkinter, AbstractInputSource
 from library.events import EventDispatcher
-from library.interface import Interface, GraphicsTkinter, Graphics
+from library.interface import Interface, GraphicsTkinter, AbstractGraphics
 from library.model.game_driver import GameDriver
 from library.resource_manager import ResourceManager
 from library.view.game_view import View
@@ -34,10 +34,10 @@ def parse_args():
 
 
 def main():
-    services = Services()
-    config = Config()
-    services[Config] = config
-    if not config.read('config'):
+    services = TypeMap()
+    config = ConfigJson()
+    services[AbstractConfig] = config
+    if not config.read('config.json'):
         logging.info('App terminated')
         return
     args = parse_args()
@@ -49,9 +49,9 @@ def main():
     services[EventDispatcher] = EventDispatcher()
     resources = ResourceManager(services)
     services[ResourceManager] = resources
-    graphics = GraphicsTkinter(services)
-    services[Graphics] = graphics
-    interface = Interface(services, graphics)
+    services[AbstractGraphics] = GraphicsTkinter(services)
+    interface = Interface(services)
+    services[Interface] = interface
     if not resources.load():
         logging.info('App terminated')
         return
@@ -63,7 +63,7 @@ def main():
         sound_engine = SoundEngine(services)
         sound_engine.initiate()
         sound_engine.run()
-    Controller(services, interface.get_canvas())
+    services[AbstractInputSource] = InputSourceTkinter(services)
     interface.run()
 
 

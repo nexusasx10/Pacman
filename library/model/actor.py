@@ -1,12 +1,11 @@
-import copy
 import math
 import random
 import weakref
 from abc import ABC, abstractmethod
 from enum import Enum
 
-from library.config import Config
-from library.controller import Control
+from library.config import AbstractConfig
+from library.model.control import InputUid
 from library.events import EventId, EventDispatcher
 from library.geometry import Vector2, Direction
 from library.model.field import Block
@@ -27,6 +26,7 @@ class Actor(ABC):
         self.max_speed = 0.1  # todo outer, переделать проверки перекрёстков
         self._weak_field = weakref.ref(field)
         self._event_dispatcher.subscribe(EventId.CROSSWAY, self._on_crossway)
+        self.sprite_idx = 0
 
     def destroy(self):
         self._event_dispatcher.unsubscribe(EventId.CROSSWAY, self._on_crossway)
@@ -64,7 +64,7 @@ class Actor(ABC):
         if self.position.distance(self.cell.move(0.5, 0.5)) < 0.06:
             if not self._field.grid[self.cell].connections[self.direction]:
                 return
-        dx, dy = map(lambda n: self.speed * n, self.direction.get_offset())
+        dx, dy = map(lambda n: self.speed * n, self.direction.to_vector())
         self.position = self.position.move(dx, dy)
         self.correct_position()
 
@@ -88,10 +88,10 @@ class Pacman(Actor):
     }
 
     controls = {
-        Control.RIGHT: Direction.EAST,
-        Control.UP: Direction.NORTH,
-        Control.LEFT: Direction.WEST,
-        Control.DOWN: Direction.SOUTH
+        InputUid.RIGHT: Direction.EAST,
+        InputUid.UP: Direction.NORTH,
+        InputUid.LEFT: Direction.WEST,
+        InputUid.DOWN: Direction.SOUTH
     }
 
     def __init__(self, services, position, direction, mode, field):
@@ -102,7 +102,7 @@ class Pacman(Actor):
             EventId.INTERSECTION,
             (self.Mode.NONE,),
             self.Mode.DEAD,
-            lambda args: not services[Config]['debug']['is_god_mode']
+            lambda args: not services[AbstractConfig]['debug']['is_god_mode']
         )
         self.state_driver_1.add_transition(
             EventId.PICKUP,
@@ -342,7 +342,7 @@ class Enemy(Actor):
                     current_block.connections
                 ),
                 key=lambda d: self._field.grid[
-                    self.cell.move(*d.get_offset())
+                    self.cell.move(*d.to_vector())
                 ].cell.distance(self.get_target())
             )[0]
 
@@ -384,7 +384,7 @@ class PinkGhost(Enemy):
         return self._field.actors['pacman'].position.move(
             *map(
                 lambda n: 4 * n,
-                self._field.actors['pacman'].direction.get_offset()
+                self._field.actors['pacman'].direction.to_vector()
             )
         )
 
@@ -408,7 +408,7 @@ class BlueGhost(Enemy):
         target = self._field.actors['pacman'].position.move(
             *map(
                 lambda n: 2 * n,
-                self._field.actors['pacman'].direction.get_offset()
+                self._field.actors['pacman'].direction.to_vector()
             )
         )
         assistant = -self._field.actors['red_ghost'].position + target * 2

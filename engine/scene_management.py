@@ -11,7 +11,7 @@ class Scene:
         actor = Actor(name)
 
         if add_transform:
-            transform = actor.add_component(Transform2)
+            transform = actor.add(Transform2)
             if parent is None:
                 self.actors.append(actor)
             else:

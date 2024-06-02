@@ -1,5 +1,6 @@
 from math import cos, sin
 
+from engine.component_alias import component_alias
 from engine.components import Component
 from library.geometry import Vector2
 from library.utils import value_or_default
@@ -32,9 +33,30 @@ class Transform2:
         self.children.remove(child)
         child.parent = None
 
+    def find_child(self, name):
+        for child in self.children:
+            if child.name == name:
+                return child
 
+
+@component_alias('transform')
 class Transform2Component(Component):
 
     def __init__(self, owner):
         super().__init__(owner)
-        self.transform = Transform2()
+        self._transform = Transform2()
+
+    def move(self, offset):
+        self._transform.move(offset)
+
+    def rotate(self, angle):
+        self._transform.rotate(angle)
+
+    def add_child(self, child):
+        self._transform.add_child(child)
+
+    def remove_child(self, child):
+        self._transform.remove_child(child)
+
+    def find_child(self, name):
+        self._transform.find_child(name)

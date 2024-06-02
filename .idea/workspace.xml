@@ -5,8 +5,47 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="0d501942-c809-4a56-971a-e540dc04ce14" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/codeStyles/codeStyleConfig.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/config.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/engine/behaviour_tree.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/engine/component_alias.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/engine/typemap.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/library/game_mode.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/library/model/control.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/library/scenario.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resources/animations/energizer.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resources/animations/ghost.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resources/animations/pacman.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resources/sprite_library.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resources/symbol_mapping.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resources/textures/ghost.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/Pacman.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/Pacman.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/engine/actor.py" beforeDir="false" afterPath="$PROJECT_DIR$/engine/actor.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/engine/components.py" beforeDir="false" afterPath="$PROJECT_DIR$/engine/components.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/engine/scene_management.py" beforeDir="false" afterPath="$PROJECT_DIR$/engine/scene_management.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/engine/transform.py" beforeDir="false" afterPath="$PROJECT_DIR$/engine/transform.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/library/animation.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/animation.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/library/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/config.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/library/controller.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/controller.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/library/events.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/events.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/library/exceptions.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/exceptions.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/library/fsm.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/fsm.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/library/geometry.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/geometry.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/library/graphics.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/graphics.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/library/interface.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/interface.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/library/model/actor.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/model/actor.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/library/model/game_driver.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/model/game_driver.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/library/model/menu.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/model/menu.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/library/resource_manager.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/resource_manager.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/library/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/utils.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/library/view/debug_view.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/view/debug_view.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/library/view/game_view.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/view/game_view.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pacman.py" beforeDir="false" afterPath="$PROJECT_DIR$/pacman.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/animations" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/textures/enemy.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/textures/pacman.png" beforeDir="false" afterPath="$PROJECT_DIR$/resources/textures/pacman.png" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -33,27 +72,35 @@
   &quot;associatedIndex&quot;: 5
 }</component>
   <component name="ProjectId" id="1l1i85AMHJz42P02xcg3qSYvJAu" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/nexusasx10/Desktop/Gamedev/Repos/Pacman&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;editor.preferences.tabs&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ASKED_ADD_EXTERNAL_FILES": "true",
+    "Python.pacman.executor": "Run",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "git-widget-placeholder": "main",
+    "last_opened_file_path": "C:/Users/nexusasx10/Desktop/Gamedev/Repos/Pacman",
+    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\nexusasx10\Desktop\Gamedev\Repos\Pacman\library" />
       <recent name="C:\Users\nexusasx10\Desktop\Gamedev\Repos\Pacman\engine" />
     </key>
   </component>
   <component name="RunManager" selected="Python.pacman">
     <configuration name="components" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="Pacman" />
+      <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
@@ -75,6 +122,7 @@
     </configuration>
     <configuration name="events" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="Pacman" />
+      <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
@@ -96,6 +144,7 @@
     </configuration>
     <configuration name="geometry" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="Pacman" />
+      <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
@@ -117,6 +166,7 @@
     </configuration>
     <configuration name="pacman" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="Pacman" />
+      <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
@@ -145,6 +195,13 @@
       </list>
     </recent_temporary>
   </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-python-sdk-d68999036c7f-d3b881c8e49f-com.jetbrains.pycharm.community.sharedIndexes.bundled-PC-233.14475.56" />
+      </set>
+    </attachedChunks>
+  </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
@@ -166,5 +223,8 @@
         </entry>
       </map>
     </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
   </component>
 </project>

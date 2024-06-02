@@ -1,0 +1,105 @@
+{
+    "states": [
+        {
+            "name": "walking",
+            "tracks": [
+                {
+                    "attribute_path": "sprite_idx",
+                    "key_frames": [
+                        { "time": 0, "value": 2, "type": "AnimationKeyFrame" },
+                        { "time": 0.12, "value": 3, "type": "AnimationKeyFrame" },
+                        { "time": 0.24, "value": 0, "type": "AnimationKeyFrame" },
+                        { "time": 0.30, "value": 1, "type": "AnimationKeyFrame" }
+                    ],
+                    "params": {
+                        "direction_offset": 4,
+                        "is_interpolated": false
+                    },
+                    "type": "AnimationTrack"
+                }
+            ],
+            "params": {
+                "is_looped": true,
+                "duration": 0.36,
+                "type": "AnimationStateParams"
+            },
+            "type": "AnimationState"
+        },
+        {
+            "name": "waiting",
+            "tracks": [
+                {
+                    "attribute_path": "sprite_idx",
+                    "key_frames": [
+                        { "time": 0, "value": 2, "type": "AnimationKeyFrame" }
+                    ],
+                    "params": {
+                        "direction_offset": 4,
+                        "is_interpolated": false
+                    },
+                    "type": "AnimationTrack"
+                }
+            ],
+            "params": {
+                "is_looped": true,
+                "duration": 0.36,
+                "type": "AnimationStateParams"
+            },
+            "type": "AnimationState"
+        },
+        {
+            "name": "dead",
+            "tracks": [
+                {
+                    "attribute_path": "sprite_idx",
+                    "key_frames": [
+                        { "time": 0, "value": 1, "type": "AnimationKeyFrame" },
+                        { "time": 0.96, "value": 2, "type": "AnimationKeyFrame" },
+                        { "time": 1.08, "value": 3, "type": "AnimationKeyFrame" },
+                        { "time": 1.20, "value": 17, "type": "AnimationKeyFrame" },
+                        { "time": 1.32, "value": 18, "type": "AnimationKeyFrame" },
+                        { "time": 1.44, "value": 19, "type": "AnimationKeyFrame" },
+                        { "time": 1.56, "value": 20, "type": "AnimationKeyFrame" },
+                        { "time": 1.68, "value": 21, "type": "AnimationKeyFrame" },
+                        { "time": 1.80, "value": 22, "type": "AnimationKeyFrame" },
+                        { "time": 1.92, "value": 23, "type": "AnimationKeyFrame" }
+                    ],
+                    "params": {
+                        "is_interpolated": false
+                    },
+                    "type": "AnimationTrack"
+                }
+            ],
+            "params": {
+                "is_looped": false,
+                "duration": 1.98,
+                "type": "AnimationStateParams"
+            },
+            "type": "AnimationState"
+        }
+    ],
+    "initial_state": "walking",
+    "transitions": [
+        {
+            "from": "waiting",
+            "to": "walking",
+            "condition": "is_waiting"
+        },
+        {
+            "from": "walking",
+            "to": "waiting",
+            "condition": "is_walking"
+        },
+        {
+            "from": "waiting",
+            "to": "dead",
+            "condition": "is_dead"
+        },
+        {
+            "from": "walking",
+            "to": "dead",
+            "condition": "is_dead"
+        }
+    ],
+    "type": "Animation"
+}

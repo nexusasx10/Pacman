@@ -3,8 +3,10 @@ import logging
 from itertools import chain
 from os import listdir, getcwd, path as paths
 from collections import defaultdict
+import json
 
-from library.config import Config
+from library.animation import Animation, AnimationState, AnimationTrack, AnimationKeyFrame, AnimationStateParams
+from library.config import AbstractConfig
 
 try:
     from simpleaudio import WaveObject
@@ -14,11 +16,10 @@ from PIL import Image, ImageTk
 
 from library.exceptions import ResourceLoadingError
 from library.geometry import Vector2, Direction
-from library.graphics import Animation, Sprite
+from library.graphics import Sprite
 from library.model.field import Block, Grid
 
 
-# todo проверка на существование нектритических ресурсов
 class ResourceManager:
 
     _resource_path = paths.join(getcwd(), 'resources')
@@ -27,8 +28,10 @@ class ResourceManager:
     _animation_path = paths.join(_resource_path, 'animations')
     _sound_path = paths.join(_resource_path, 'sounds')
     _data_path = paths.join(getcwd(), 'data')
-    _ratings_path = paths.join(_data_path, 'ratings')
+    _ratings_path = paths.join(_data_path, 'ratings.json')
     _saves_path = paths.join(_data_path, 'saves')
+    _symbol_mapping_path = paths.join(_resource_path, 'symbol_mapping.json')
+    _sprite_library_path = paths.join(_resource_path, 'sprite_library.json')
 
     _block_types = {
         # content, anchor, can enter
@@ -42,12 +45,21 @@ class ResourceManager:
         'F': (Block.Content.EMPTY, 'fruit', True)
     }
 
+    _json_type_map = {
+        "Animation": Animation,
+        "AnimationState": AnimationState,
+        "AnimationTrack": AnimationTrack,
+        "AnimationKeyFrame": AnimationKeyFrame,
+        "AnimationStateParams": AnimationStateParams
+    }
+
     def __init__(self, services):
-        self._config = services[Config]
+        self._config = services[AbstractConfig]
         self._max_save_count = self._config['common']['max_saves']
         self._max_rating_count = self._config['common']['max_ratings']
         self._grids = {}
-        self._sprite = defaultdict(list)
+        self._sprites = {}
+        self._colored_sprite_cache = {}
         self._animations = {}
         self._sounds = {}
         self._ratings = []
@@ -55,6 +67,10 @@ class ResourceManager:
             key: defaultdict(dict)
             for key in chain(range(self._max_save_count), ('quick',))
         }
+        self._symbol_map = {}
+        self._sprite_library = {}
+
+        self._fallback_animation = None
 
     def load(self):
         loads = (
@@ -64,6 +80,8 @@ class ResourceManager:
             self._load_sounds,
             self._load_ratings,
             self._load_saves,
+            self._load_symbol_mapping,
+            self._load_sprite_library,
         )
         for load in loads:
             try:
@@ -103,6 +121,8 @@ class ResourceManager:
                 atlas = Image.open(paths.join(self._texture_path, file_name))
             except OSError as exc:
                 raise ResourceLoadingError(True, *exc.args)
+            images = []
+            name = paths.splitext(paths.basename(file_name))[0]
             for j in range(atlas.height // texture_height):
                 for i in range(atlas.width // texture_width):
                     texture = atlas.crop(
@@ -113,70 +133,62 @@ class ResourceManager:
                             (j + 1) * texture_height
                         )
                     )
-                    name = paths.splitext(paths.basename(file_name))[0]
-                    image = ImageTk.PhotoImage(texture)
-                    self._sprite[name].append(image)
+                    images.append(texture)
+            self._sprites[name] = Sprite(*images)
 
-    def get_sprite(self, name):
-        if name in self._sprite:
-            return self._sprite[name]
+    def get_sprite(self, name, color=None):
+        if name in self._sprites:
+            if (name, color) not in self._colored_sprite_cache.keys():
+                colored_images = []
+                sprite = self._sprites[name]
+                for texture in sprite._images:
+                    colored_texture = texture.copy()
+                    if color is not None:
+                        for i in range(texture.height):
+                            for j in range(texture.width):
+                                pixel = texture.getpixel((i, j))
+                                pixel = (
+                                    int(pixel[0] * color[0]),
+                                    int(pixel[1] * color[1]),
+                                    int(pixel[2] * color[2]),
+                                    int(pixel[3] * color[3])
+                                )
+                                colored_texture.putpixel((i, j), pixel)
+                    image = ImageTk.PhotoImage(colored_texture)
+                    colored_images.append(image)
+                colored_sprite = Sprite(*colored_images)
+                self._colored_sprite_cache[(name, color)] = colored_sprite
+            return self._colored_sprite_cache[(name, color)]
         else:
             return self._get_fallback_sprite()
 
     def _load_animations(self):
-        parser = configparser.ConfigParser(delimiters=('=',))
-        read_ok = parser.read(self._animation_path, encoding='utf-8')
-        if not read_ok:
-            raise ResourceLoadingError(True, 'Can\'t read animation file')
-        for section in parser:
-            if section == 'DEFAULT':
+        for file_name in listdir(self._animation_path):
+            if not file_name.endswith('.json'):
                 continue
-            for key in parser[section]:
-                value = parser[section][key]
-                params = {}
-                i = 0
-                if value[i] == '[':
-                    cur_param_name = ''
-                    cur_param_value = ''
-                    is_name = True
-                    while i < len(value):
-                        i += 1
-                        match value[i]:
-                            case ']':
-                                i += 1
-                                break
-                            case ' ':
-                                continue
-                            case '=':
-                                is_name = False
-                            case ',':
-                                params[cur_param_name] = cur_param_value
-                                cur_param_name = ''
-                                cur_param_value = ''
-                                is_name = True
-                            case _:
-                                if is_name:
-                                    cur_param_name += value[i]
-                                else:
-                                    cur_param_value += value[i]
-                value = value[i:]
-                value.replace(' ', '')
-                sequence_raw = value.split(',')
-                sequence = []
-                for item in sequence_raw:
-                    if 'x' in item:
-                        item = item.split('x')
-                        sequence.extend([int(item[0])] * int(item[1]))
-                    else:
-                        sequence.append(int(item))
-                name = f'{section}/{key}'
-                self._animations[name] = Animation(sequence, params)
+            file_name = paths.join(self._animation_path, file_name)
+            name = paths.splitext(paths.basename(file_name))[0]
+            data = None
+            try:
+                with open(file_name, 'r') as anim_file:
+                    data = anim_file.read()
+            except OSError as exc:
+                raise ResourceLoadingError(False, 'Can\'t read animation file')
+            animation = json.loads(data, object_hook=self._json_to_type)
+            self._animations[name] = animation
 
-    _fallback_animation = None
+    def _json_to_type(self, json_obj):
+        if 'type' in json_obj.keys() and json_obj['type'] in self._json_type_map.keys():
+            type_ = self._json_type_map[json_obj['type']]
+            del json_obj['type']
+            return type_(**json_obj)
+        else:
+            return json_obj
 
     def _get_fallback_animation(self):
         if not self._fallback_animation:
-            self._fallback_animation = Animation((0,), {})
+            states = [AnimationState('default', [], AnimationStateParams(False, 0))]
+            self._fallback_animation = Animation(states, 'default', [])
         return self._fallback_animation
 
     def get_animation(self, name):
@@ -184,9 +196,33 @@ class ResourceManager:
             return self._animations[name]
         return self._get_fallback_animation()
 
+    def _load_symbol_mapping(self):
+        with open(self._symbol_mapping_path, 'r') as symbol_mapping_file:
+            data = symbol_mapping_file.read().replace('\n', ' ')
+        obj = json.loads(data)
+        for mapping in obj['mappings']:
+            if mapping.get('byte') is not None:
+                self._symbol_map[mapping['byte']] = mapping['idx']
+            elif mapping.get('begin_byte') is not None:
+                idx_offset = 0
+                for i in range(mapping.get('begin_byte'), mapping.get('end_byte') + 1):
+                    self._symbol_map[i] = mapping['begin_idx'] + idx_offset
+                    idx_offset += 1
+
+    def get_symbol_map(self):
+        return self._symbol_map
+
+    def _load_sprite_library(self):
+        with open(self._sprite_library_path, 'r') as sprite_library_file:
+            data = sprite_library_file.read()
+            self._sprite_library = json.loads(data)
+
+    def get_sprite_library(self):
+        return self._sprite_library
+
     def _load_sounds(self):
         if not WaveObject:
-            raise ResourceLoadingError(False)
+            raise ResourceLoadingError(False, message='Sound engine is not found')
 
         for file_name in listdir(self._sound_path):
             if not file_name.endswith('.wav'):
@@ -251,9 +287,9 @@ class ResourceManager:
                 block_info = self._block_types[char]
                 connections = {}
                 for direction in Direction:
-                    o_x, o_y = direction.get_offset()
-                    i_o = (i + o_y) % size.y
-                    j_o = (j + o_x) % size.x
+                    o = direction.to_vector()
+                    i_o = (i + o.y) % size.y
+                    j_o = (j + o.x) % size.x
                     try:
                         connection = self._block_types[data[i_o][j_o]][2]
                     except:
@@ -267,22 +303,25 @@ class ResourceManager:
 
     # todo max_ratings_count check and max_name_length
     def _load_ratings(self):
-        parser = configparser.ConfigParser()
-        read_ok = parser.read(self._ratings_path, encoding='utf-8')
-        if not read_ok:
-            raise ResourceLoadingError(False, 'Can\'t read ratings file')
-        for key in parser['DEFAULT']:
+        data = None
+        try:
+            with open(self._ratings_path, 'r') as ratings_file:
+                data = ratings_file.read()
+        except:
+            raise ResourceLoadingError(False, message='Can\'t read ratings file')
+        ratings_json = json.loads(data)
+        for record in ratings_json:
             try:
-                self._ratings.append((key, parser.getint('DEFAULT', key)))
+                self._ratings.append((record['name'], record['rating']))
             except ValueError:
-                raise ResourceLoadingError(False, 'Can\'t read ratings file')
+                raise ResourceLoadingError(False, message='Can\'t read ratings file')
         self._ratings.sort(key=lambda x: -x[1])
         self._ratings = self._ratings[:self._max_rating_count]
         # todo exc
         # todo если ресурс критический - корректно завершаем прогу,
         # todo инача пользуемся значениями по-умолчанию, прописанными в init
 
-    def list_ratings(self):
+    def get_rating_list(self):
         return self._ratings
 
     def add_rating(self, name, rating):

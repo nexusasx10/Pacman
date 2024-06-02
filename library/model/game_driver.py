@@ -3,8 +3,8 @@ from enum import Enum
 
 import datetime
 
-from library.config import Config
-from library.controller import Control
+from library.config import AbstractConfig
+from library.model.control import InputUid
 from library.events import EventId, EventDispatcher
 from library.model.actor import Pacman, RedGhost, PinkGhost, BlueGhost, \
     OrangeGhost, Enemy
@@ -36,7 +36,7 @@ class GameDriver:
         self._services = services
         self._event_dispatcher = self._services[EventDispatcher]
         self._resources = self._services[ResourceManager]
-        self._config = self._services[Config]
+        self._config = self._services[AbstractConfig]
         self.menu = None
         self._init_menu()
         self._scheduler = Scheduler(self._event_dispatcher)
@@ -153,7 +153,7 @@ class GameDriver:
             lambda: self._resources.add_rating(
                 ''.join(
                     map(
-                        lambda i: self._config['model']['symbols'][i],
+                        lambda i: self._config['gameplay']['symbols'][i],
                         menu.record_item.cache['name']
                     )
                 ),
@@ -175,7 +175,7 @@ class GameDriver:
         self.field = Field(
             self._services, self._resources.get_grid(grid)
         )
-        self._dots = self._config['model']['dot_count']
+        self._dots = self._config['gameplay']['dot_count']
 
     def _reset(self):
         self._scheduler.reset()
@@ -197,13 +197,13 @@ class GameDriver:
                 return self.field.grid.size + Vector2(16, 0)
             case _:
                 return Vector2(
-                    self._config['model']['default_width'],
-                    self._config['model']['default_height']
+                    self._config['view']['default_width'],
+                    self._config['view']['default_height']
                 )
 
     def new_game(self, difficulty, grid):
         self._reset()
-        lives = self._config['model']['start_lives']
+        lives = self._config['gameplay']['start_lives']
         self._initiate(0, grid, difficulty, 1, 0, lives)
         self._event_dispatcher.fire(EventId.GAME_INIT, self)
         if difficulty == self.Difficulty.EASY:
@@ -431,7 +431,7 @@ class GameDriver:
         self.field = Field(
             self._services, self._resources.get_grid(self.grid)
         )
-        self._dots = self._config['model']['dot_count']  # todo
+        self._dots = self._config['gameplay']['dot_count']  # todo
         self._event_dispatcher.fire(EventId.GAME_RESTART, self)
 
     def _on_game_restart(self, event_args):
@@ -492,7 +492,7 @@ class GameDriver:
             if self._dots == 0:
                 self.mode = self.Mode.FREE
                 self.level += 1
-                if self.level > self._config['model']['max_level']:
+                if self.level > self._config['gameplay']['max_level']:
                     self.mode = self.Mode.WIN
                 else:
                     self._event_dispatcher.fire(EventId.NEXT_LEVEL, self)
@@ -510,24 +510,24 @@ class GameDriver:
 
     def _on_control(self, event_args):
         if self.mode == self.Mode.MENU:
-            if event_args.value == Control.DOWN:
+            if event_args.value == InputUid.DOWN:
                 self.menu.down()
-            elif event_args.value == Control.UP:
+            elif event_args.value == InputUid.UP:
                 self.menu.up()
-            elif event_args.value == Control.RIGHT:
+            elif event_args.value == InputUid.RIGHT:
                 self.menu.right()
-            elif event_args.value == Control.LEFT:
+            elif event_args.value == InputUid.LEFT:
                 self.menu.left()
-            elif event_args.value == Control.ENTER:
+            elif event_args.value == InputUid.ENTER:
                 self.menu.enter()
-            elif event_args.value == Control.EXIT:
+            elif event_args.value == InputUid.EXIT:
                 self.menu.back()
         elif self.mode == self.Mode.PLAY:
-            if event_args.value == Control.EXIT:
+            if event_args.value == InputUid.EXIT:
                 self.menu.current_page = self.menu.pause_item
                 self.menu.current_page.reset()
                 self.mode = self.Mode.MENU
-            if event_args.value == Control.SAVE:
+            if event_args.value == InputUid.SAVE:
                 self.save_game('quick')
         elif self.mode in (self.Mode.WIN, self.Mode.LOSE):
             self.menu.current_page = self.menu.record_item

@@ -18,18 +18,6 @@ class DataClass:  # TODO: This is deprecated
         return result
 
 
-class Services:
-
-    def __init__(self):
-        self.container = {}
-
-    def __getitem__(self, type_):
-        return self.container[type_]
-
-    def __setitem__(self, type_, value):
-        self.container[type_] = value
-
-
 class classproperty:
 
     def __init__(self, getter):

@@ -1,4 +1,4 @@
-from library.geometry import Vector2
+from engine.transform import Transform2Component
 from library.fsm import Fsm
 
 
@@ -9,28 +9,46 @@ class AnimationKeyFrame:
         self.value = value
 
 
+class AnimationStateParams:
+
+    def __init__(self, is_looped, duration):
+        self.is_looped = is_looped
+        self.duration = duration
+
+
+class AnimationTrackParams:
+
+    def __init__(self, is_interpolated):
+        self.is_interpolated = is_interpolated
+
+
 class AnimationTrack:
 
-    def __init__(self, attribute_path, params):
-        self.attribute_path = attribute_path
-        self.key_frames = [
-            AnimationKeyFrame(0, Vector2(0, 0)),
-            AnimationKeyFrame(1, Vector2(1, 1)),
-            AnimationKeyFrame(2, Vector2(0, 1))
-        ]
+    def __init__(self, attribute_path, key_frames, params):
+        self.attribute_path = list(map(lambda x: x.split('.'), attribute_path.split('/')))
+        self.key_frames = key_frames
         self.params = params
 
     def update(self, time, obj):
-        obj[self.attribute_path] = self.evaluate(time)
+        if len(self.attribute_path) > 1:
+            for actor_name in self.attribute_path[:-1]:
+                obj = obj[Transform2Component].find_child(actor_name).owner
+        field_path = self.attribute_path[-1]
+        if len(field_path) > 1:
+            for field_name in field_path:
+                obj = obj.__getattr__[field_name]
+        value = self.evaluate(time)
+        if value is not None:
+            obj.__setattr__(field_path[-1], value)
 
 # TODO: Оптимизировать взятие значения по времени (хотя на наших данных эта оптимизация ничего не даст)
     def evaluate(self, time):
         curr_frame = None
 
-        for i in range(len(self.key_frames) - 1):
-            curr_frame = self.key_frames[i]
-            next_frame = self.key_frames[i + 1]
-            if time < next_frame.time:
+        for frame in self.key_frames:
+            if frame.time < time:
+                curr_frame = frame
+            else:
                 break
 
         if not curr_frame:
@@ -41,9 +59,9 @@ class AnimationTrack:
 
 class AnimationState:
 
-    def __init__(self, name, params):
+    def __init__(self, name, tracks, params):
         self.name = name
-        self.tracks = []
+        self.tracks = tracks
         self.params = params
 
     def __eq__(self, other):
@@ -53,17 +71,37 @@ class AnimationState:
         return hash(self.name)
 
     def update(self, time, obj):
+        if self.params.is_looped:
+            time = time % self.params.duration
+
         for track in self.tracks:
             track.update(time, obj)
 
 
 class Animation:
 
-    def __init__(self):
-        self.fsm = Fsm(AnimationState('initial_state', {}))
-        self.time = 0
+    def __init__(self, states, initial_state, transitions):
+        self.states = states
+        self.initial_state = initial_state
+        self.transitions = transitions
+
+    def create_context(self):
+        initial_state = None
+        for state in self.states:
+            if state.name == self.initial_state:
+                initial_state = state
+
+        return AnimationContext(0, self.states, initial_state, initial_state)
+
+
+class AnimationContext:
+
+    def __init__(self, time, states, initial_state, current_state):
+        self.time = time
+        self._fsm = Fsm(initial_state)
+        for state in states:
+            self._fsm.add_state(state)
+        self._fsm.current_state = current_state
 
     def update(self, obj):
-        self.fsm.current_state.update(self.time, obj)
-
-# TODO: Params: looped, interpolated
+        self._fsm.current_state.update(self.time, obj)

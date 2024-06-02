@@ -11,6 +11,7 @@ class Fsm:
         self.initial_state = initial_state
         self.current_state = self.initial_state
         self.states = []
+        self.add_state(self.initial_state)
         self.transitions = defaultdict(list)
         self.on_transition = Delegate()
 

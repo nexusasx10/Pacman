@@ -1,0 +1,48 @@
+{
+    "common": {
+        "max_saves": 10,
+        "max_ratings": 10,
+        "max_name_length": 6
+    },
+    "debug": {
+        "is_debug": false,
+        "is_god_mode": false,
+        "step_by_step": false
+    },
+    "interface": {
+        "app_name": "Pacman",
+        "version": 0.6
+    },
+    "view": {
+        "fps": 60,
+        "sound_enabled": true,
+        "px_per_unit": 16,
+        "scale": 1,
+        "default_width": 44,
+        "default_height": 31
+    },
+    "gameplay": {
+        "symbols": "abcdefghijklmnopqrstuvwxyz0123456789-",
+        "dot_count": 240,
+        "max_level": 5,
+        "start_lives": 3
+    },
+    "controls": {
+        "w": "up",
+        "a": "left",
+        "s": "down",
+        "d": "right",
+        "ц": "up",
+        "ф": "left",
+        "ы": "down",
+        "в": "right",
+        "up": "up",
+        "left": "left",
+        "down": "down",
+        "right": "right",
+        "return": "enter",
+        "escape": "exit",
+        "f5": "save",
+        "f10": "step"
+    }
+}

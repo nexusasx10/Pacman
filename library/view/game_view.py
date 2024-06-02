@@ -1,10 +1,10 @@
 from collections import deque
 
-from library.config import Config
+from library.config import AbstractConfig
 from library.events import EventId, EventDispatcher
 from library.geometry import Vector2, Direction
-from library.graphics import AnimationDrawer
-from library.interface import Graphics
+from library.graphics import SpriteDrawer
+from library.interface import AbstractGraphics
 from library.model.actor import Pacman, Enemy, Actor
 from library.model.field import Block
 from library.model.game_driver import GameDriver
@@ -36,11 +36,10 @@ class TextDrawer:
         for i, char in enumerate(text):
             if char == ' ':
                 continue
-            drawer = AnimationDrawer(self._services[Graphics], self._canvas)
+            drawer = SpriteDrawer(self._services[AbstractGraphics], self._canvas)  # todo: why we are creating it each frame?
             self._drawers.append(drawer)
-            animation_name = f'char/{char}'
-            animation = self._services[ResourceManager].get_animation(animation_name)
-            drawer.draw(position.move(i, 0) + self._offset, self._sprite, animation)
+            idx = self._services[ResourceManager].get_symbol_map()[ord(char)]
+            drawer.draw(position.move(i, 0) + self._offset, self._sprite, idx)
 
     def clear(self):
         while self._drawers:
@@ -52,19 +51,22 @@ class ActorDrawer:
 
     _offset = -Actor.size / 2
 
-    def __init__(self, graphics, canvas, sprite):
-        self._animation_drawer = AnimationDrawer(graphics, canvas)
-        self._sprite = sprite
+    def __init__(self, resources, graphics, canvas):
+        self._color = (255, 0, 0)
+        self._sprite_drawer = SpriteDrawer(graphics, canvas)
+        self._resources = resources
 
-    def draw(self, actor, animation):
-        self._animation_drawer.draw(
+    def draw(self, actor, sprite_uid, color=None):
+        sprite_file = self._resources.get_sprite_library()[sprite_uid]['file']
+        sprite = self._resources.get_sprite(sprite_file, color)
+        self._sprite_drawer.draw(
             actor.position + self._offset,
-            self._sprite,
-            animation
+            sprite,
+            actor.sprite_idx
         )
 
     def clear(self):
-        self._animation_drawer.clear()
+        self._sprite_drawer.clear()
 
 
 class PacmanDrawer:
@@ -73,8 +75,9 @@ class PacmanDrawer:
 
     def __init__(self, graphics, canvas, resources):
         self._resources = resources
-        sprite = self._resources.get_sprite('pacman')
-        self._actor_drawer = ActorDrawer(graphics, canvas, sprite)
+        animation = self._resources.get_animation(self._actor_name)
+        self._animation_context = animation.create_context()
+        self._actor_drawer = ActorDrawer(self._resources, graphics, canvas)
 
     def draw(self, actor):
         animation_name = f'{self._actor_name}/'
@@ -85,8 +88,9 @@ class PacmanDrawer:
                 animation_name += f'waiting_{actor.direction.name.lower()}'
             case (_, Pacman.Mode.WALKING):
                 animation_name += f'walking_{actor.direction.name.lower()}'
-        animation = self._resources.get_animation(animation_name)
-        self._actor_drawer.draw(actor, animation)
+        self._animation_context.time += 0.06
+        self._animation_context.update(actor)
+        self._actor_drawer.draw(actor, self._actor_name)
 
     def clear(self):
         self._actor_drawer.clear()
@@ -94,11 +98,15 @@ class PacmanDrawer:
 
 class EnemyDrawer:
 
-    def __init__(self, graphics, canvas, resources, actor_name):
+    _base_actor_name = 'ghost'
+
+    def __init__(self, graphics, canvas, resources, actor_name, color):
         self._resources = resources
         self._actor_name = actor_name
-        sprite = self._resources.get_sprite(self._actor_name)
-        self._drawer = ActorDrawer(graphics, canvas, sprite)
+        self._color = color
+        self._drawer = ActorDrawer(self._resources, graphics, canvas)
+        animation = self._resources.get_animation(self._base_actor_name)
+        self._animation_context = animation.create_context()
 
     def draw(self, actor):
         animation_name = f'{self._actor_name}/'
@@ -111,8 +119,9 @@ class EnemyDrawer:
                 animation_name += 'frightened_end'
             case Enemy.Mode.DEAD:
                 animation_name += f'dead_{actor.direction.name.lower()}'
-        animation = self._resources.get_animation(animation_name)
-        self._drawer.draw(actor, animation)
+        self._animation_context.time += 0.06
+        self._animation_context.update(actor)
+        self._drawer.draw(actor, self._base_actor_name, self._color)
 
     def clear(self):
         self._drawer.clear()
@@ -124,7 +133,7 @@ class BlockDrawer:
 
     def __init__(self, services, canvas):
         self._resources = services[ResourceManager]
-        self._drawer = AnimationDrawer(services[Graphics], canvas)
+        self._drawer = SpriteDrawer(services[AbstractGraphics], canvas)
         self._last_state = None
 
     def draw(self, block, field):
@@ -134,17 +143,18 @@ class BlockDrawer:
         #     return
         # else:
         #     self._last_state = block.content
-        animation_name = 'block/'
+        sprite_name = ''
         match block.content:
             case Block.Content.FRUIT:
-                animation_name += 'fruit_0'
+                sprite_name += 'fruit_0'
             case Block.Content.WALL:
-                animation_name += f'wall_{self.wall_type(block, field)}'
+                sprite_name += f'wall_{self.wall_type(block, field)}'
             case _:
-                animation_name += block.content.name.lower()
-        sprite = self._resources.get_sprite('block')
-        animation = self._resources.get_animation(animation_name)
-        self._drawer.draw(block.cell + self._offset, sprite, animation)
+                sprite_name += block.content.name.lower()
+        sprite_data = self._resources.get_sprite_library()[sprite_name]
+        sprite = self._resources.get_sprite(sprite_data['file'])
+        idx = sprite_data['default_idx']
+        self._drawer.draw(block.cell + self._offset, sprite, idx)
 
     @staticmethod
     def wall_type(block, field):
@@ -203,45 +213,45 @@ class BackgroundDrawer:
     _offset = -Block.size / 2
 
     def __init__(self, services, canvas):
-        self._config = services[Config]
+        self._config = services[AbstractConfig]
         self._sprite = services[ResourceManager].get_sprite('block')
-        self._graphics = services[Graphics]
+        self._graphics = services[AbstractGraphics]
         self._resources = services[ResourceManager]
         self._canvas = canvas
         self._drawers = {}
 
     def _get_drawer(self, i, j):
         if (i, j) not in self._drawers:
-            self._drawers[i, j] = AnimationDrawer(self._graphics, self._canvas)
+            self._drawers[i, j] = SpriteDrawer(self._graphics, self._canvas)
         return self._drawers[i, j]
 
     def draw(self, position, size):
         for j in range(size.y):
             for i in range(size.x):
-                animation_name = 'block/'
+                sprite_name = ''
                 if j == 0:
                     if i == 0:
-                        animation_name += 'wall_10'
+                        sprite_name += 'wall_10'
                     elif i == size.x - 1:
-                        animation_name += 'wall_11'
+                        sprite_name += 'wall_11'
                     else:
-                        animation_name += 'wall_8'
+                        sprite_name += 'wall_8'
                 elif j == size.y - 1:
                     if i == 0:
-                        animation_name += 'wall_12'
+                        sprite_name += 'wall_12'
                     elif i == size.x - 1:
-                        animation_name += 'wall_13'
+                        sprite_name += 'wall_13'
                     else:
-                        animation_name += 'wall_2'
+                        sprite_name += 'wall_2'
                 else:
                     if i == 0:
-                        animation_name += 'wall_6'
+                        sprite_name += 'wall_6'
                     elif i == size.x - 1:
-                        animation_name += 'wall_4'
+                        sprite_name += 'wall_4'
                     else:
-                        animation_name += 'empty'
-                animation = self._resources.get_animation(animation_name)
-                self._get_drawer(i, j).draw(position.move(i, j) + self._offset, self._sprite, animation)
+                        sprite_name += 'empty'
+                sprite_idx = self._resources.get_sprite_library()[sprite_name]['default_idx']
+                self._get_drawer(i, j).draw(position.move(i, j) + self._offset, self._sprite, sprite_idx)
 
 
 class MenuDrawer:
@@ -250,7 +260,7 @@ class MenuDrawer:
 
     def __init__(self, services, canvas):
         self._services = services
-        self._graphics = self._services[Graphics]
+        self._graphics = self._services[AbstractGraphics]
         self._canvas = canvas
         self._title_drawer = TextDrawer(self._services, self._canvas)
         self._content_drawers = []
@@ -294,7 +304,7 @@ class MenuDrawer:
         third = ''
         for i, p in enumerate(menu.current_page.cache['name']):
             first += '^' if menu.current_page.char_pointer == i else ' '
-            second += self._services[Config]['model']['symbols'][p]
+            second += self._services[AbstractConfig]['gameplay']['symbols'][p]
             third += '`' if menu.current_page.char_pointer == i else ' '
         prev_content.append(first)
         prev_content.append(second)
@@ -323,7 +333,8 @@ class GameDrawer:
 
     def __init__(self, services, canvas):
         self._services = services
-        self._graphics = self._services[Graphics]
+        self._config = self._services[AbstractConfig]
+        self._graphics = self._services[AbstractGraphics]
         self._resources = self._services[ResourceManager]
         self._canvas = canvas
         self._actor_drawers = {}
@@ -338,25 +349,29 @@ class GameDrawer:
             self._graphics,
             self._canvas,
             self._resources,
-            'red_ghost'
+            'red_ghost',
+            (1, 0, 0, 1)
         )
         self._actor_drawers['pink_ghost'] = EnemyDrawer(
             self._graphics,
             self._canvas,
             self._resources,
-            'pink_ghost'
+            'pink_ghost',
+            (1, 0.6, 0.6, 1)
         )
         self._actor_drawers['blue_ghost'] = EnemyDrawer(
             self._graphics,
             self._canvas,
             self._resources,
-            'blue_ghost'
+            'blue_ghost',
+            (0, 0.74, 1, 1)
         )
         self._actor_drawers['orange_ghost'] = EnemyDrawer(
             self._graphics,
             self._canvas,
             self._resources,
-            'orange_ghost'
+            'orange_ghost',
+            (1, 0.54, 0, 1)
         )
         self._level_drawers = TextDrawer(services, self._canvas)
         self._scores_drawers = TextDrawer(services, self._canvas)
@@ -364,7 +379,7 @@ class GameDrawer:
         self._background_drawer = None
 
     def initial_draw(self, model):
-        self._canvas.set_size(model.get_size() * 16)
+        self._canvas.set_size(model.get_size() * self._config['view']['px_per_unit'] * self._config['view']['scale'])
         for x in range(model.field.grid.size.x):
             for y in range(model.field.grid.size.y):
                 self._block_drawers[Vector2(x, y)] = BlockDrawer(
@@ -378,7 +393,10 @@ class GameDrawer:
         if not model:
             return
         for block in model.field.grid:
-            self._block_drawers[block.cell].draw(block, model.field)
+            try:
+                self._block_drawers[block.cell].draw(block, model.field)
+            except KeyError:
+                pass
         for actor in model.field.actors.values():
             self._actor_drawers[actor.name].draw(actor)
         self._level_drawers.draw(
@@ -405,6 +423,9 @@ class CaptionDrawer:
         self._canvas = canvas
         self._background_drawer = BackgroundDrawer(self._services, self._canvas)
         self._text_drawer = TextDrawer(self._services, self._canvas)
+
+    def initial_draw(self, model):
+        pass
 
     def draw(self, model):
         text = ''
@@ -444,16 +465,12 @@ class View:
     def _on_redraw(self, event_args):
         if not self._model:
             return
+
         if self._mode_change:
             self._canvas.clear_all()
             old, new = self._mode_change.popleft()
-            if new == GameDriver.Mode.MENU:
-                self._drawers[GameDriver.Mode.MENU].initial_draw(self._model)
-            elif new == GameDriver.Mode.PLAY:
-                self._drawers[GameDriver.Mode.PLAY].initial_draw(self._model)
-            if new == GameDriver.Mode.WAIT:
-                self._drawers[GameDriver.Mode.PLAY].initial_draw(self._model)
-                self._drawers[GameDriver.Mode.PLAY].draw(self._model)
+            if new in self._drawers:
+                self._drawers[new].initial_draw(self._model)
         if self._model.mode in self._drawers:
             self._drawers[self._model.mode].draw(self._model)
         # todo отрисовывать акторов, только когда они в пределах видимой

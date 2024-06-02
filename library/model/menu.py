@@ -1,6 +1,6 @@
 from itertools import chain
 
-from library.config import Config
+from library.config import AbstractConfig
 from library.resource_manager import ResourceManager
 
 
@@ -85,7 +85,7 @@ class RatingsItem(PageItem):
 
     @property
     def ratings(self):
-        return self._services[ResourceManager].list_ratings()
+        return self._services[ResourceManager].get_rating_list()
 
 
 class SaveItem(PageItem):
@@ -159,7 +159,7 @@ class RecordItem(PageItem):
 
     def __init__(self, services, title):
         super().__init__(title)
-        self._config = services[Config]
+        self._config = services[AbstractConfig]
         self.char_pointer = 0
         max_name_length = self._config['common']['max_name_length']
         self.cache['name'] = [0] * max_name_length
@@ -175,7 +175,7 @@ class RecordItem(PageItem):
         if self.char_pointer == len(self.cache['name']):
             super().down()
             return
-        symbol_count = len(self._config['model']['symbols'])
+        symbol_count = len(self._config['gameplay']['symbols'])
         if self.cache['name'][self.char_pointer] < symbol_count - 1:
             self.cache['name'][self.char_pointer] += 1
 

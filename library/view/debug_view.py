@@ -1,16 +1,16 @@
 from library.events import EventId, EventDispatcher
+from library.interface import AbstractGraphics
 from library.model.actor import Enemy
-from library.model.field import Block
 from library.model.game_driver import GameDriver
 
 
 class EnemyDrawer:
 
     def __init__(self, services, canvas, color):
-        self._services = services
         self._canvas = canvas
         self._canvas_id = None
         self._color = color
+        self._graphics = services[AbstractGraphics]
 
     def draw(self, actor):
         self.clear()
@@ -22,9 +22,11 @@ class EnemyDrawer:
                 )
         ):
             return
+        screen_from = self._graphics.world_space_to_screen_space(actor.position)
+        screen_to = self._graphics.world_space_to_screen_space(actor.get_target())
         self._canvas_id = self._canvas.draw_line(
-            actor.position.scale(Block.size),
-            actor.get_target().scale(Block.size),
+            screen_from,
+            screen_to,
             self._color
         )
 
